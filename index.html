@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <script type="text/javascript" src="//localhost:35729/livereload.js?snipver=1" async="" defer=""></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Course Editor Admin</title>
+  <script type="text/javascript" src="elm.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" 
+    integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="assets/css/layouts/side-menu.css">
+</head>
+
+<body>
+</body>
+
+<script type="text/javascript" src="js/keycloak.js"></script>
+<script type="text/javascript" src="js/keycloak-client.js"></script>
+
+<script type="text/javascript">
+
+  var app = null;
+
+  var onLoginSuccess = function(token, profile, logoutUrl, managementUrl) {
+    app = Elm.Main.init({ flags: {
+      token: token,
+      logoutUrl: logoutUrl
+    }});
+  };
+
+  var onLoginFailure = function(err) {
+    
+  };
+
+  var onTokenUpdate = function(token) {
+    app.ports.onTokenUpdated.send(token);
+  };
+
+  window.keycloakClient.initialize(
+    onLoginSuccess,
+    onLoginFailure,
+    onTokenUpdate,
+    window.location.hostname
+  );
+
+</script>
+
+</html>

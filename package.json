@@ -1,0 +1,16 @@
+{
+  "name": "achilles",
+  "version": "1.0.0",
+  "description": "admin application and elm testbed",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "serve": "elm-live src/Main.elm --output=elm.js --port=7000 --host=dev.local"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "elm": "^0.19.0-bugfix2"
+  }
+}
