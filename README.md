@@ -7,7 +7,7 @@ A course editor admin application written in Elm.
 During a battle in the Trojan War in Homer's the  *Illiad*, the river 
 god Scamander, furious over the sight of so many corpses in his waters, overflows
 his banks in an attempt to drown the responsible party, the
-great warrior Achilles.  As Achilles is being swept away under the great
+great warrior Achilles.  As Achilles is being swept away under the 
 wall of water, he reaches out for safety, grabbing onto the branch of a great elm tree.
 
 I think this is an interesting metaphor for front-end development in JavaScript.
