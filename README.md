@@ -31,7 +31,7 @@ does kinda still work.  I think the Atom and IntelliJ plugins have been updated 
    2. Create a new client called "admin_client".
       1. Set root URL and admin URL to be `http://devl.local:7000`
       2. Set the Valid Redirect URL and Web origins to be `*`
-  3. Edit the web origins of the "account" client to be `*`
+   3. Edit the web origins of the "account" client to be `*`
 8. Run the compiler and server.
 > npm run serve
 9. Open a browser and visit the application at `http://dev.local:7000`.
