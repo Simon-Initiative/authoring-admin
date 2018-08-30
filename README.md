@@ -29,7 +29,7 @@ does kinda still work.  I think the Atom and IntelliJ plugins have been updated 
 7. Update the Keycloak server to allow this new client.
    1. Log into the Keycloak admin console at [dev.local/auth/](http://dev.local/auth/)
    2. Create a new client called "admin_client".
-      1. Set root URL and admin URL to be `http://devl.local:7000`
+      1. Set root URL and admin URL to be `http://dev.local:7000`
       2. Set the Valid Redirect URL and Web origins to be `*`
    3. Edit the web origins of the "account" client to be `*`
    4. Edit the 'manager' account to add the 'realm-management' client role 'realm-admin'.
