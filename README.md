@@ -33,10 +33,7 @@ does kinda still work.  I think the Atom and IntelliJ plugins have been updated 
       1. Set root URL and admin URL to be `http://dev.local:7000`
       2. Set the Valid Redirect URL and Web origins to be `*`
    4. Edit the web origins of the "account" client to be `*`
-   5. Edit the 'manager' account to add the 'realm-management' client role 'realm-admin'.
+   5. Edit the 'manager' account (under 'users' tab) to add the 'realm-management' client role 'realm-admin'.
 8. Run the compiler and server.
 > npm run serve
 9. Open a browser and visit the application at `http://dev.local:7000`.
-
-
-
