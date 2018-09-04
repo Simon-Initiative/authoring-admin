@@ -89,8 +89,8 @@ getTitle str accum =
 
 
 convertToPackages : List ( String, List String ) -> List PackageMembership
-convertToPackages list =
-    List.map (\( guid, items ) -> PackageMembership (toGuid guid) (extractTitle items) Contributor) list
+convertToPackages =
+    List.map (\( guid, items ) -> PackageMembership (toGuid guid) (extractTitle items) Contributor)
 
 
 packagesDecoder : Decoder (List ( String, List String ))

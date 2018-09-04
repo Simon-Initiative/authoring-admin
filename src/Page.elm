@@ -21,6 +21,8 @@ type Page
     | Home
     | Packages
     | PackageDetails
+    | Users
+    | UserDetails
 
 
 {-| Take a page's Html and frames it with a header and footer.
@@ -67,6 +69,7 @@ viewMenu page =
             , ul [ class "pure-menu-list " ]
                 [ linkTo Route.Home [ text "Home" ]
                 , linkTo Route.Packages [ text "Packages" ]
+                , linkTo Route.Users [ text "Users "]
                 ]
             ]
         ]
@@ -88,6 +91,12 @@ isActive page route =
             True
 
         ( PackageDetails, Route.Packages ) ->
+            True
+
+        ( Users, Route.Users ) ->
+            True
+
+        ( UserDetails, Route.Users ) ->
             True
 
         _ ->

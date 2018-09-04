@@ -11,6 +11,8 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.PackageDetails as PackageDetails
 import Page.Packages as Packages
+import Page.UserDetails as UserDetails
+import Page.Users as Users
 import Route exposing (Route)
 import Session exposing (Session)
 import Task
@@ -33,6 +35,8 @@ type Model
     | Home Session
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
+    | Users Users.Model
+    | UserDetails UserDetails.Model
 
 
 type alias Flags =
@@ -80,6 +84,12 @@ view model =
         PackageDetails details ->
             viewPage Page.PackageDetails GotPackageDetailsMsg (PackageDetails.view details)
 
+        Users users ->
+            viewPage Page.Users GotUsersMsg (Users.view users)
+
+        UserDetails details ->
+            viewPage Page.UserDetails GotUserDetailsMsg (UserDetails.view details)
+
 
 
 -- UPDATE
@@ -93,6 +103,8 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotPackagesMsg Packages.Msg
     | GotPackageDetailsMsg PackageDetails.Msg
+    | GotUsersMsg Users.Msg
+    | GotUserDetailsMsg UserDetails.Msg
 
 
 toSession : Model -> Session
@@ -109,6 +121,12 @@ toSession page =
 
         PackageDetails details ->
             PackageDetails.toSession details
+
+        Users users ->
+            Users.toSession users
+
+        UserDetails details ->
+            UserDetails.toSession details
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -134,6 +152,14 @@ changeRouteTo maybeRoute model =
         Just (Route.PackageDetails resourceId) ->
             PackageDetails.init resourceId session
                 |> updateWith PackageDetails GotPackageDetailsMsg model
+
+        Just Route.Users -> 
+            Users.init session
+                |> updateWith Users GotUsersMsg model
+
+        Just (Route.UserDetails resourceId) ->
+            UserDetails.init resourceId session
+                |> updateWith UserDetails GotUserDetailsMsg model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -188,6 +214,14 @@ update msg model =
             PackageDetails.update subMsg details
                 |> updateWith PackageDetails GotPackageDetailsMsg model
 
+        ( GotUsersMsg subMsg, Users users ) ->
+            Users.update subMsg users
+                |> updateWith Users GotUsersMsg model
+
+        ( GotUserDetailsMsg subMsg, UserDetails details ) ->
+            UserDetails.update subMsg details
+                |> updateWith UserDetails GotUserDetailsMsg model
+
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
             ( model, Cmd.none )
@@ -215,6 +249,12 @@ updateSession session model =
         PackageDetails details ->
             PackageDetails { details | session = session }
 
+        Users courseModel ->
+            Users { courseModel | session = session }
+
+        UserDetails details ->
+            UserDetails { details | session = session }
+
 
 
 -- SUBSCRIPTIONS
@@ -233,6 +273,12 @@ subscriptions model =
 
                 PackageDetails details ->
                     [ Sub.map GotPackageDetailsMsg (PackageDetails.subscriptions details) ]
+
+                Users users ->
+                    [ Sub.map GotUsersMsg (Users.subscriptions users) ]
+
+                UserDetails details ->
+                    [ Sub.map GotUserDetailsMsg (UserDetails.subscriptions details) ]
 
                 Home home ->
                     []
