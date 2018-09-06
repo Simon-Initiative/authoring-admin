@@ -23,7 +23,7 @@ I think this is an interesting metaphor for front-end development in JavaScript.
 standard on every file save.
 > npm install -g elm-format
 5. Install `elm-live`. This is a community Elm project that provides a hot-reloading server.
-> npm install -g elm-live
+> npm install --global elm elm-live@next
 6. Install an editor plugin.  The VSCode Elm plugin hasn't yet been updated for Elm 0.19, but
 does kinda still work.  I think the Atom and IntelliJ plugins have been updated for 0.19.
 7. Update the Keycloak server to allow this new client.
