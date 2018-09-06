@@ -98,6 +98,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotPackagesMsg Packages.Msg
     | GotPackageDetailsMsg PackageDetails.Msg
+    | GotSessionsMsg UserSessions.Msg
 
 
 toSession : Model -> Session
@@ -144,7 +145,8 @@ changeRouteTo maybeRoute model =
                 |> updateWith PackageDetails GotPackageDetailsMsg model
 
         Just Route.UserSessions ->
-            ( UserSessions { session = session }, Cmd.none )
+            UserSessions.init session
+                |> updateWith UserSessions GotSessionsMsg model
 
 
 

@@ -1,8 +1,7 @@
-module Page.UserSessions exposing (Model, Msg, subscriptions, toSession, update, view)
+module Page.UserSessions exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Navigation as Nav
-import Data.Package as Package exposing (Package, retrievePackages)
-import Data.Username as Username exposing (Username)
+import Data.UserSession as UserSession exposing (UserSession, retrieveSessions)
 import Html exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events exposing (onInput, onSubmit)
@@ -23,44 +22,45 @@ import Task
 
 type alias Model =
     { session : Session
-    -- , status : Status
+    , status : Status
     }
 
 
--- type Status
---     = Loading
---     | LoadingSlowly
---     | Loaded (List Package)
---     | Failed Http.Error
+type Status
+    = Loading
+    | LoadingSlowly
+    | Loaded (List UserSession)
+    | Failed Http.Error
 
 
--- init : Session -> ( Model, Cmd Msg )
--- init session =
---     ( { session = session
---       , status = Loading
---       }
---     , Cmd.batch
---         [ retrievePackages session.token
---             |> Http.send RetrievedPackages
---         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
---         ]
---     )
+init : Session -> ( Model, Cmd Msg )
+init session =
+    ( { session = session
+      , status = Loading
+      }
+    , Cmd.batch
+        [ retrieveSessions session.token
+            |> Http.send RetrievedSessions
+        , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
+        ]
+    )
 
 
 
 -- VIEW
 
 
--- viewPackages : List Package -> Html Msg
--- viewPackages packages =
---     let
---         listItems =
---             List.map (\p -> li [] [ linkTo p.guid p.title ]) packages
+viewSessions : List UserSession -> Html Msg
+viewSessions sessions =
+    let
+        listItems =
+            List.map (\s -> li [] [ linkTo s.id s.username ]) sessions
 
---         linkTo guid title =
---             a [ Route.href (Route.PackageDetails guid) ] [ text title ]
---     in
---     ul [] listItems
+        linkTo id title =
+            -- a [ Route.href (Route.PackageDetails id) ] [ text title ]
+            a [ ] [ text title ]
+    in
+    ul [] listItems
 
 
 view : Model -> { title : String, content : Html Msg }
@@ -68,28 +68,27 @@ view model =
     { title = "Active User Sessions"
     , content =
         div [ class "user-sessions-page" ]
-            -- [ case model.status of
-            --     Loaded packages ->
-            --         viewPackages packages
+            [ case model.status of
+                Loaded userSessions ->
+                    viewSessions userSessions
 
-            --     Loading ->
-            --         text ""
+                Loading ->
+                    text ""
 
-            --     LoadingSlowly ->
-            --         Loading.icon
+                LoadingSlowly ->
+                    Loading.icon
 
-            --     Failed err ->
-            --         case err of
-            --             Http.BadStatus response ->
-            --                 text "bad status"
+                Failed err ->
+                    case err of
+                        Http.BadStatus response ->
+                            text "bad status"
 
-            --             Http.BadPayload msg response ->
-            --                 text msg
+                        Http.BadPayload msg response ->
+                            text msg
 
-            --             _ ->
-            --                 text "error"
-            -- ]
-            [ text "hey" ]
+                        _ ->
+                            text "error"
+            ]
     }
 
 
@@ -98,36 +97,32 @@ view model =
 
 
 type Msg
-    -- = RetrievedPackages (Result Http.Error (List Package))
-    -- | PassedSlowLoadThreshold
-    = PageLoaded
+    = RetrievedSessions (Result Http.Error (List UserSession))
+    | PassedSlowLoadThreshold
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-        case msg of
-            PageLoaded ->
-                ( model, Cmd.none )
-    -- case msg of
-    --     RetrievedPackages (Ok packages) ->
-    --         ( { model | status = Loaded packages }
-    --         , Cmd.none
-    --         )
+    case msg of
+        RetrievedSessions (Ok sessions) ->
+            ( { model | status = Loaded sessions }
+            , Cmd.none
+            )
 
-    --     RetrievedPackages (Err err) ->
-    --         ( { model | status = Failed err }
-    --         , Cmd.none
-    --         )
+        RetrievedSessions (Err err) ->
+            ( { model | status = Failed err }
+            , Cmd.none
+            )
 
-    --     PassedSlowLoadThreshold ->
-    --         case model.status of
-    --             Loading ->
-    --                 ( { model | status = LoadingSlowly }
-    --                 , Cmd.none
-    --                 )
+        PassedSlowLoadThreshold ->
+            case model.status of
+                Loading ->
+                    ( { model | status = LoadingSlowly }
+                    , Cmd.none
+                    )
 
-    --             _ ->
-    --                 ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
 
 
