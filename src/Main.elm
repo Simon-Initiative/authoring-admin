@@ -11,6 +11,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.PackageDetails as PackageDetails
 import Page.Packages as Packages
+import Page.UserSessions as UserSessions
 import Route exposing (Route)
 import Session exposing (Session)
 import Task
@@ -33,6 +34,7 @@ type Model
     | Home Session
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
+    | UserSessions UserSessions.Model
 
 
 type alias Flags =
@@ -80,6 +82,9 @@ view model =
         PackageDetails details ->
             viewPage Page.PackageDetails GotPackageDetailsMsg (PackageDetails.view details)
 
+        UserSessions sessions ->
+            viewPage Page.UserSessions (\_ -> Ignored) (UserSessions.view sessions)
+
 
 
 -- UPDATE
@@ -110,6 +115,9 @@ toSession page =
         PackageDetails details ->
             PackageDetails.toSession details
 
+        UserSessions sessions ->
+            UserSessions.toSession sessions
+
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
@@ -134,6 +142,10 @@ changeRouteTo maybeRoute model =
         Just (Route.PackageDetails resourceId) ->
             PackageDetails.init resourceId session
                 |> updateWith PackageDetails GotPackageDetailsMsg model
+
+        Just Route.UserSessions ->
+            ( UserSessions { session = session }, Cmd.none )
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -215,6 +227,8 @@ updateSession session model =
         PackageDetails details ->
             PackageDetails { details | session = session }
 
+        UserSessions sessions ->
+            UserSessions { sessions | session = session }
 
 
 -- SUBSCRIPTIONS
@@ -235,6 +249,9 @@ subscriptions model =
                     [ Sub.map GotPackageDetailsMsg (PackageDetails.subscriptions details) ]
 
                 Home home ->
+                    []
+
+                UserSessions sessions ->
                     []
 
         subs =

@@ -21,6 +21,7 @@ type Page
     | Home
     | Packages
     | PackageDetails
+    | UserSessions
 
 
 {-| Take a page's Html and frames it with a header and footer.
@@ -67,6 +68,7 @@ viewMenu page =
             , ul [ class "pure-menu-list " ]
                 [ linkTo Route.Home [ text "Home" ]
                 , linkTo Route.Packages [ text "Packages" ]
+                , linkTo Route.UserSessions [ text "Sessions" ]
                 ]
             ]
         ]
