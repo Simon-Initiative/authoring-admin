@@ -1,7 +1,8 @@
 module Page.UserSessions exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Navigation as Nav
-import Data.UserSession as UserSession exposing (UserSession, retrieveSessions)
+import Data.SessionClient exposing (SessionClient, retrieveSessionClients)
+import Data.UserSession exposing (UserSession, retrieveUserSessions)
 import Html exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events exposing (onInput, onSubmit)
@@ -14,7 +15,7 @@ import Log
 import Route
 import Session exposing (Session)
 import Task
-
+import List.Extra
 
 
 -- MODEL
@@ -39,8 +40,8 @@ init session =
       , status = Loading
       }
     , Cmd.batch
-        [ retrieveSessions session.token
-            |> Http.send RetrievedSessions
+        [ retrieveSessionClients session.token
+            |> Http.send RetrievedClientSessions
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
     )
@@ -51,13 +52,12 @@ init session =
 
 
 viewSessions : List UserSession -> Html Msg
-viewSessions sessions =
+viewSessions userSessions =
     let
         listItems =
-            List.map (\s -> li [] [ linkTo s.id s.username ]) sessions
+            List.map (\s -> li [] [ linkTo s.id s.username ]) userSessions
 
         linkTo id title =
-            -- a [ Route.href (Route.PackageDetails id) ] [ text title ]
             a [ ] [ text title ]
     in
     ul [] listItems
@@ -73,7 +73,7 @@ view model =
                     viewSessions userSessions
 
                 Loading ->
-                    text ""
+                    text "Loading..."
 
                 LoadingSlowly ->
                     Loading.icon
@@ -97,19 +97,39 @@ view model =
 
 
 type Msg
-    = RetrievedSessions (Result Http.Error (List UserSession))
+    = RetrievedClientSessions (Result Http.Error (List SessionClient))
+    | RetrievedUserSessions (Result Http.Error (List UserSession))
     | PassedSlowLoadThreshold
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RetrievedSessions (Ok sessions) ->
-            ( { model | status = Loaded sessions }
+        RetrievedClientSessions (Ok sessionClients) ->
+            let
+                maybeAccountClient = List.Extra.find (\c -> c.clientId == "account") sessionClients
+            in
+            ( model
+            , case maybeAccountClient of
+                Just (accountClient) ->
+                    retrieveUserSessions (toSession model).token accountClient.id
+                        |> Http.send RetrievedUserSessions
+            
+                Nothing ->
+                    Cmd.none
+            )
+
+        RetrievedClientSessions (Err err) ->
+            ( { model | status = Failed err }
             , Cmd.none
             )
 
-        RetrievedSessions (Err err) ->
+        RetrievedUserSessions (Ok userSessions) ->
+            ( { model | status = Loaded userSessions }
+            , Cmd.none
+            )
+
+        RetrievedUserSessions (Err err) ->
             ( { model | status = Failed err }
             , Cmd.none
             )

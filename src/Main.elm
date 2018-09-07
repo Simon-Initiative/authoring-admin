@@ -83,7 +83,7 @@ view model =
             viewPage Page.PackageDetails GotPackageDetailsMsg (PackageDetails.view details)
 
         UserSessions sessions ->
-            viewPage Page.UserSessions (\_ -> Ignored) (UserSessions.view sessions)
+            viewPage Page.UserSessions GotSessionsMsg (UserSessions.view sessions)
 
 
 
@@ -202,6 +202,10 @@ update msg model =
             PackageDetails.update subMsg details
                 |> updateWith PackageDetails GotPackageDetailsMsg model
 
+        ( GotSessionsMsg subMsg, UserSessions userSessions ) ->
+            UserSessions.update subMsg userSessions
+                |> updateWith UserSessions GotSessionsMsg model
+
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
             ( model, Cmd.none )
@@ -254,7 +258,7 @@ subscriptions model =
                     []
 
                 UserSessions sessions ->
-                    []
+                    [ Sub.map GotSessionsMsg (UserSessions.subscriptions sessions) ]
 
         subs =
             onTokenUpdated TokenUpdated :: fromModel

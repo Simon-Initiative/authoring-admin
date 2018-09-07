@@ -1,4 +1,4 @@
-module Data.UserSession exposing (UserSession, retrieveUserSessions)
+module Data.SessionClient exposing (SessionClient, retrieveSessionClients)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.ResourceId exposing (ResourceId, decoder)
@@ -8,17 +8,15 @@ import Dict exposing (Dict)
 import Json.Decode exposing (Decoder, fail, float, int, list, nullable, string, dict, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 
-type alias UserSession =
+
+type alias SessionClient =
     { id : String
-    , username : String
-    , userId : String
-    , ipAddress : String
-    , start : Int
-    , lastAccess : Int
-    , clients : Dict String String
+    , active : String
+    , clientId : String
     }
 
-retrieveUserSessions token clientId =
+
+retrieveSessionClients token =
     let
         headers =
             [ Http.header
@@ -35,30 +33,27 @@ retrieveUserSessions token clientId =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/clients/" ++ clientId ++ "/user-sessions"
+            "http://dev.local/auth/admin/realms/oli_security/client-session-stats"
     in
     Http.request
         { method = "GET"
         , headers = headers
         , url = url
         , body = Http.emptyBody
-        , expect = Http.expectJson sessionsDecoder
+        , expect = Http.expectJson sessionClientsDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
-sessionsDecoder : Decoder (List UserSession)
-sessionsDecoder =
-    list sessionDecoder
+
+sessionClientsDecoder : Decoder (List SessionClient)
+sessionClientsDecoder =
+    list clientDecoder
 
 
-sessionDecoder : Decoder UserSession
-sessionDecoder =
-    succeed UserSession
+clientDecoder : Decoder SessionClient
+clientDecoder =
+    succeed SessionClient
         |> required "id" string
-        |> required "username" string
-        |> required "userId" string
-        |> required "ipAddress" string
-        |> required "start" int
-        |> required "lastAccess" int
-        |> required "clients" (dict string)
+        |> required "active" string
+        |> required "clientId" string
