@@ -1,4 +1,4 @@
-module Data.UserSession exposing (UserSession, retrieveUserSessions)
+module Data.UserSession exposing (UserSession, retrieveUserSessions, logoutUser, logoutAllUsers)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.ResourceId exposing (ResourceId, decoder)
@@ -43,6 +43,63 @@ retrieveUserSessions token clientId =
         , url = url
         , body = Http.emptyBody
         , expect = Http.expectJson sessionsDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+logoutUser token userId =
+    let
+        headers =
+            [ Http.header
+                "Content-Type"
+                "application/json"
+            , Http.header
+                "Accept"
+                "application/json"
+            , Http.header
+                "Authorization"
+                ("Bearer "
+                    ++ token
+                )
+            ]
+
+        url =
+            "http://dev.local/auth/admin/realms/oli_security/users/" ++ userId ++ "/logout"
+    in
+    Http.request
+        { method = "POST"
+        , headers = headers
+        , url = url
+        , body = Http.emptyBody
+        , expect = Http.expectJson (succeed ())
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+logoutAllUsers token =
+    let
+        headers =
+            [ Http.header
+                "Content-Type"
+                "application/json"
+            , Http.header
+                "Accept"
+                "application/json"
+            , Http.header
+                "Authorization"
+                ("Bearer "
+                    ++ token
+                )
+            ]
+
+        url = "http://dev.local/auth/admin/realms/oli_security/logout-all"
+    in
+    Http.request
+        { method = "POST"
+        , headers = headers
+        , url = url
+        , body = Http.emptyBody
+        , expect = Http.expectJson (succeed ())
         , timeout = Nothing
         , withCredentials = False
         }
