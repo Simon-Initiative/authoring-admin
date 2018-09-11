@@ -10,4 +10,5 @@ import Browser.Navigation as Nav
 type alias Session =
     { navKey : Nav.Key
     , token : String
+    , baseUrl : String
     }

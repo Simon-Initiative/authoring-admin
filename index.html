@@ -25,7 +25,8 @@
   var onLoginSuccess = function(token, profile, logoutUrl, managementUrl) {
     app = Elm.Main.init({ flags: {
       token: token,
-      logoutUrl: logoutUrl
+      logoutUrl: logoutUrl,
+      baseUrl: location.protocol + '//' + location.hostname,
     }});
   };
 

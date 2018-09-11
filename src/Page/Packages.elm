@@ -40,7 +40,7 @@ init session =
       , status = Loading
       }
     , Cmd.batch
-        [ retrievePackages session.token
+        [ retrievePackages session.token session.baseUrl
             |> Http.send RetrievedPackages
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]

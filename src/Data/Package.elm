@@ -24,7 +24,7 @@ type alias Package =
     }
 
 
-retrievePackages token =
+retrievePackages token baseUrl =
     let
         headers =
             [ Http.header
@@ -41,7 +41,7 @@ retrievePackages token =
             ]
 
         url =
-            "http://dev.local/content-service/api/v1/packages/editable"
+            baseUrl ++ "/content-service/api/v1/packages/editable"
     in
     Http.request
         { method = "GET"

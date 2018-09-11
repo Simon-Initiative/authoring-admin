@@ -6,11 +6,8 @@
     "test": "tests"
   },
   "scripts": {
-    "serve": "elm-live src/Main.elm --output=elm.js --port=7000 --host=dev.local"
+    "serve": "elm-live src/Main.elm --output=elm.js --port=9001 --host=dev.local --debug"
   },
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "elm": "^0.19.0-bugfix2"
-  }
+  "license": "ISC"
 }

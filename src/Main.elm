@@ -38,6 +38,7 @@ type Model
 type alias Flags =
     { token : String
     , logoutUrl : String
+    , baseUrl : String
     }
 
 
@@ -48,7 +49,7 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     changeRouteTo (Route.fromUrl url)
-        (Home (Session navKey flags.token))
+        (Home (Session navKey flags.token flags.baseUrl))
 
 
 
@@ -143,8 +144,11 @@ update msg model =
             let
                 session =
                     toSession model
+
+                updated =
+                    { session | token = token }
             in
-            ( updateSession { session | token = token } model, Cmd.none )
+            ( updateSession updated model, Cmd.none )
 
         ( Ignored, _ ) ->
             ( model, Cmd.none )
