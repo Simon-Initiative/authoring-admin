@@ -130,7 +130,22 @@ update msg model =
             ( { model | status = Failed err }
             , Cmd.none
             )
-
+        LockPermission (Ok locked) ->
+            ( model
+             , Cmd.none
+            )
+        LockPermission (Err err) ->
+            ( model
+             , Cmd.none
+            )
+        HidePermission (Ok hidden) ->
+            ( model
+             , Cmd.none
+            )
+        HidePermission (Err err) ->
+            ( model
+             , Cmd.none
+            )
         ToggleVisible details ->
             let
                 viz = toggle details.visible
