@@ -23,10 +23,14 @@
   var app = null;
 
   var onLoginSuccess = function(token, profile, logoutUrl, managementUrl) {
+
+    console.log(profile);
+
     app = Elm.Main.init({ flags: {
       token: token,
       logoutUrl: logoutUrl,
       baseUrl: location.protocol + '//' + location.hostname,
+      profile
     }});
   };
 

@@ -2,6 +2,7 @@ port module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import Data.Profile exposing (Profile)
 import Data.Username exposing (Username)
 import Debug
 import Html exposing (..)
@@ -39,6 +40,7 @@ type alias Flags =
     { token : String
     , logoutUrl : String
     , baseUrl : String
+    , profile : Profile
     }
 
 
@@ -49,7 +51,7 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     changeRouteTo (Route.fromUrl url)
-        (Home (Session navKey flags.token flags.baseUrl))
+        (Home (Session navKey flags.token flags.baseUrl flags.profile))
 
 
 
