@@ -6,7 +6,7 @@
     "test": "tests"
   },
   "scripts": {
-    "serve": "elm-live src/Main.elm --output=elm.js --port=7000 --host=dev.local"
+    "serve": "elm-live src/Main.elm --port=7000 --open --pushstate --host=dev.local --debug -- --output=elm.js"
   },
   "author": "",
   "license": "ISC",
