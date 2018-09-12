@@ -54,8 +54,8 @@ type Msg
     | PassedSlowLoadThreshold
     | ToggleVisible PackageDetails
     | ToggleEditable PackageDetails
-    | LockPermission (Result Http.Error PackageDetails.Locked)
-    | HidePermission (Result Http.Error PackageDetails.Hidden)
+    | LockDetails (Result Http.Error PackageDetails.Locked)
+    | HideDetails (Result Http.Error PackageDetails.Hidden)
 
 
 -- VIEW
@@ -130,19 +130,19 @@ update msg model =
             ( { model | status = Failed err }
             , Cmd.none
             )
-        LockPermission (Ok locked) ->
+        LockDetails (Ok locked) ->
             ( model
              , Cmd.none
             )
-        LockPermission (Err err) ->
+        LockDetails (Err err) ->
             ( model
              , Cmd.none
             )
-        HidePermission (Ok hidden) ->
+        HideDetails (Ok hidden) ->
             ( model
              , Cmd.none
             )
-        HidePermission (Err err) ->
+        HideDetails (Err err) ->
             ( model
              , Cmd.none
             )
@@ -153,7 +153,7 @@ update msg model =
             ({model | status =  Loaded {details | visible = viz}}
             , Cmd.batch
                 [ hidePackage details.guid viz model.session.token
-                    |> Http.send HidePermission
+                    |> Http.send HideDetails
                 ])
 
         ToggleEditable details ->
@@ -163,7 +163,7 @@ update msg model =
              ({model | status = Loaded {details | editable = loc}}
             , Cmd.batch
                 [ lockPackage details.guid loc model.session.token
-                    |> Http.send LockPermission
+                    |> Http.send LockDetails
                 ])
 
         PassedSlowLoadThreshold ->
