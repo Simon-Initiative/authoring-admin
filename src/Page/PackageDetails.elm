@@ -3,7 +3,7 @@ module Page.PackageDetails exposing (Model, Msg, init, subscriptions, toSession,
 import Browser.Navigation as Nav
 import Data.Guid as Guid exposing (Guid)
 import Data.Package as Package exposing (Package)
-import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails, hidePackage, lockPackage)
+import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails, setPackageVisible, setPackageEditable)
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
@@ -54,8 +54,8 @@ type Msg
     | PassedSlowLoadThreshold
     | ToggleVisible PackageDetails
     | ToggleEditable PackageDetails
-    | LockDetails (Result Http.Error PackageDetails.Locked)
-    | HideDetails (Result Http.Error PackageDetails.Hidden)
+    | PkgEditableDetails (Result Http.Error PackageDetails.PkgEditable)
+    | PkgVisibleDetails (Result Http.Error PackageDetails.PkgVisible)
 
 
 -- VIEW
@@ -130,19 +130,19 @@ update msg model =
             ( { model | status = Failed err }
             , Cmd.none
             )
-        LockDetails (Ok locked) ->
+        PkgEditableDetails (Ok locked) ->
             ( model
              , Cmd.none
             )
-        LockDetails (Err err) ->
+        PkgEditableDetails (Err err) ->
             ( model
              , Cmd.none
             )
-        HideDetails (Ok hidden) ->
+        PkgVisibleDetails (Ok hidden) ->
             ( model
              , Cmd.none
             )
-        HideDetails (Err err) ->
+        PkgVisibleDetails (Err err) ->
             ( model
              , Cmd.none
             )
@@ -152,8 +152,8 @@ update msg model =
             in
             ({model | status =  Loaded {details | visible = viz}}
             , Cmd.batch
-                [ hidePackage details.guid viz model.session.token
-                    |> Http.send HideDetails
+                [ setPackageVisible details.guid viz model.session.token
+                    |> Http.send PkgVisibleDetails
                 ])
 
         ToggleEditable details ->
@@ -162,8 +162,8 @@ update msg model =
             in
              ({model | status = Loaded {details | editable = loc}}
             , Cmd.batch
-                [ lockPackage details.guid loc model.session.token
-                    |> Http.send LockDetails
+                [ setPackageEditable details.guid loc model.session.token
+                    |> Http.send PkgEditableDetails
                 ])
 
         PassedSlowLoadThreshold ->

@@ -1,4 +1,4 @@
-module Data.PackageDetails exposing (PackageDetails, retrievePackageDetails, hidePackage, lockPackage, Locked, Hidden)
+module Data.PackageDetails exposing (PackageDetails, retrievePackageDetails, setPackageVisible, setPackageEditable, PkgEditable, PkgVisible)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
@@ -60,14 +60,11 @@ detailsDecoder =
         |> required "editable" bool
         |> required "resources" resourcesDecoder
 
-hidePackage: Guid -> Bool -> String -> Http.Request Hidden
-hidePackage courseId hide token =
+setPackageVisible: Guid -> Bool -> String -> Http.Request PkgVisible
+setPackageVisible courseId visible token =
     let
         headers =
-            [ Http.header
-                "Content-Type"
-                "application/json"
-            , Http.header
+            [Http.header
                 "Accept"
                 "application/json"
             , Http.header
@@ -78,41 +75,8 @@ hidePackage courseId hide token =
             ]
 
 
-        url = Url.crossOrigin "http://dev.local" ["api", "v1", "packages", Data.Guid.toString courseId, "hide"]
-            [Url.string "hide" ((\n -> if n then "true" else "false") hide)]
-
-        body = Encode.list Encode.string [Data.Guid.toString courseId]
-                |> Http.jsonBody
-    in
-    Http.request
-        { method = "GET"
-        , headers = headers
-        , url = url
-        , body = body
-        , expect = Http.expectJson hiddenDecoder
-        , timeout = Nothing
-        , withCredentials = False
-        }
-
-lockPackage: Guid -> Bool -> String -> Http.Request Locked
-lockPackage courseId lock token =
-    let
-        headers =
-            [ Http.header
-                "Content-Type"
-                "application/json"
-            , Http.header
-                "Accept"
-                "application/json"
-            , Http.header
-                "Authorization"
-                ("Bearer "
-                    ++ token
-                )
-            ]
-
-        url = Url.crossOrigin "http://dev.local" ["api", "v1", "packages", Data.Guid.toString courseId, "lock"]
-            [Url.string "lock" ((\n -> if n then "true" else "false") lock)]
+        url = Url.crossOrigin "http://dev.local" ["content-service", "api", "v1", "packages", "set","visible"]
+            [Url.string "visible" ((\n -> if n then "true" else "false") visible)]
 
         body = Encode.list Encode.string [Data.Guid.toString courseId]
                 |> Http.jsonBody
@@ -122,28 +86,58 @@ lockPackage courseId lock token =
         , headers = headers
         , url = url
         , body = body
-        , expect = Http.expectJson lockDecoder
+        , expect = Http.expectJson pkgVisibleDecoder
         , timeout = Nothing
         , withCredentials = False
         }
 
-type alias Locked =
+setPackageEditable: Guid -> Bool -> String -> Http.Request PkgEditable
+setPackageEditable courseId editable token =
+    let
+        headers =
+            [ Http.header
+                "Accept"
+                "application/json"
+            , Http.header
+                "Authorization"
+                ("Bearer "
+                    ++ token
+                )
+            ]
+
+        url = Url.crossOrigin "http://dev.local" ["content-service", "api", "v1", "packages", "set", "editable"]
+            [Url.string "editable" ((\n -> if n then "true" else "false") editable)]
+
+        body = Encode.list Encode.string [Data.Guid.toString courseId]
+                |> Http.jsonBody
+    in
+    Http.request
+        { method = "POST"
+        , headers = headers
+        , url = url
+        , body = body
+        , expect = Http.expectJson pkgEditableDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+type alias PkgEditable =
     { locked : String
     , packages : List String
     }
 
-lockDecoder : Decoder Locked
-lockDecoder =
-  succeed Locked
-          |> required "locked" string
+pkgEditableDecoder : Decoder PkgEditable
+pkgEditableDecoder =
+  succeed PkgEditable
+          |> required "editable" string
           |> required "packages" (list string)
 
-type alias Hidden =
+type alias PkgVisible =
     { hidden : String
     , packages : List String
     }
-hiddenDecoder : Decoder Hidden
-hiddenDecoder =
-  succeed Hidden
-          |> required "hidden" string
+pkgVisibleDecoder : Decoder PkgVisible
+pkgVisibleDecoder =
+  succeed PkgVisible
+          |> required "visible" string
           |> required "packages" (list string)
