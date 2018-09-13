@@ -1,4 +1,4 @@
-module Page.PackageDetails exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.PackageDetails exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
 import Browser.Navigation as Nav
 import Data.Guid as Guid exposing (Guid)
@@ -17,7 +17,7 @@ import Json.Encode as Encode
 import Loading
 import Log
 import Route
-import Session exposing (Session)
+import AppContext exposing (AppContext)
 import Task
 
 
@@ -26,7 +26,7 @@ import Task
 
 
 type alias Model =
-    { session : Session
+    { context : AppContext
     , status : Status
     }
 
@@ -38,13 +38,13 @@ type Status
     | Failed Http.Error
 
 
-init : Guid -> Session -> ( Model, Cmd Msg )
-init packageId session =
-    ( { session = session
+init : Guid -> AppContext -> ( Model, Cmd Msg )
+init packageId context =
+    ( { context = context
       , status = Loading
       }
     , Cmd.batch
-        [ retrievePackageDetails packageId session.token
+        [ retrievePackageDetails packageId context.session.token
             |> Http.send RetrievedDetails
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -142,7 +142,6 @@ subscriptions model =
 
 -- EXPORT
 
-
-toSession : Model -> Session
-toSession model =
-    model.session
+toContext : Model -> AppContext
+toContext model =
+    model.context

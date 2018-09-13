@@ -17,7 +17,8 @@ import Session exposing (Session)
 import Task
 import Time
 import Url exposing (Url)
-
+import AppContext exposing (AppContext)
+import Theme exposing (Theme, getLightTheme)
 
 port onTokenUpdated : (String -> msg) -> Sub msg
 
@@ -30,8 +31,8 @@ port onTokenUpdated : (String -> msg) -> Sub msg
 
 
 type Model
-    = NotFound Session
-    | Home Session
+    = NotFound AppContext
+    | Home AppContext
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
     | UserSessions UserSessions.Model
@@ -50,7 +51,7 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     changeRouteTo (Route.fromUrl url)
-        (Home (Session navKey flags.token))
+        (Home (AppContext (Session navKey flags.token) getLightTheme ))
 
 
 
@@ -101,51 +102,50 @@ type Msg
     | GotSessionsMsg UserSessions.Msg
 
 
-toSession : Model -> Session
-toSession page =
+toContext : Model -> AppContext
+toContext page =
     case page of
-        NotFound session ->
-            session
+        NotFound context ->
+            context
 
-        Home session ->
-            session
+        Home context ->
+            context
 
         Packages packages ->
-            Packages.toSession packages
+            Packages.toContext packages
 
         PackageDetails details ->
-            PackageDetails.toSession details
+            PackageDetails.toContext details
 
         UserSessions sessions ->
-            UserSessions.toSession sessions
-
+            UserSessions.toContext sessions
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
-        session =
-            toSession model
+        context =
+            toContext model
     in
     case maybeRoute of
         Nothing ->
-            ( NotFound session, Cmd.none )
+            ( NotFound context, Cmd.none )
 
         Just Route.Root ->
-            ( model, Route.replaceUrl session.navKey Route.Home )
+            ( model, Route.replaceUrl context.session.navKey Route.Home )
 
         Just Route.Home ->
-            ( Home session, Cmd.none )
+            ( Home context, Cmd.none )
 
         Just Route.Packages ->
-            Packages.init session
+            Packages.init context
                 |> updateWith Packages GotPackagesMsg model
 
         Just (Route.PackageDetails resourceId) ->
-            PackageDetails.init resourceId session
+            PackageDetails.init resourceId context
                 |> updateWith PackageDetails GotPackageDetailsMsg model
 
         Just Route.UserSessions ->
-            UserSessions.init session
+            UserSessions.init context
                 |> updateWith UserSessions GotSessionsMsg model
 
 
@@ -155,10 +155,11 @@ update msg model =
     case ( msg, model ) of
         ( TokenUpdated token, _ ) ->
             let
-                session =
-                    toSession model
+                context =
+                    toContext model
+                session = context.session
             in
-            ( updateSession { session | token = token } model, Cmd.none )
+            ( updateContext { context | session = { session | token = token } } model, Cmd.none )
 
         ( Ignored, _ ) ->
             ( model, Cmd.none )
@@ -180,7 +181,7 @@ update msg model =
 
                         Just _ ->
                             ( model
-                            , Nav.pushUrl (toSession model).navKey (Url.toString url)
+                            , Nav.pushUrl (toContext model).session.navKey (Url.toString url)
                             )
 
                 Browser.External href ->
@@ -217,24 +218,23 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
     , Cmd.map toMsg subCmd
     )
 
-
-updateSession : Session -> Model -> Model
-updateSession session model =
+updateContext : AppContext -> Model -> Model
+updateContext context model =
     case model of
         NotFound _ ->
-            NotFound session
+            NotFound context
 
         Home _ ->
-            Home session
+            Home context
 
         Packages courseModel ->
-            Packages { courseModel | session = session }
+            Packages { courseModel | context = context }
 
         PackageDetails details ->
-            PackageDetails { details | session = session }
+            PackageDetails { details | context = context }
 
         UserSessions sessions ->
-            UserSessions { sessions | session = session }
+            UserSessions { sessions | context = context }
 
 
 -- SUBSCRIPTIONS

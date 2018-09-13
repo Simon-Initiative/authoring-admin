@@ -1,4 +1,4 @@
-module Page.UserSessions exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.UserSessions exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
 import Browser.Navigation as Nav
 import Data.SessionClient exposing (SessionClient, retrieveSessionClients)
@@ -14,17 +14,21 @@ import Json.Encode as Encode
 import Loading
 import Log
 import Route
-import Session exposing (Session)
+import AppContext exposing (AppContext)
 import Task
 import List.Extra
-import Theme exposing (..)
 import Time exposing (..)
+import Css exposing (..)
+import Html.Styled as Styled
+import Html.Styled.Attributes as StyledAttrs
+import Html.Styled.Events as StyledEvents
+import Theme exposing (globalThemeStyles)
 
 -- MODEL
 
 
 type alias Model =
-    { session : Session
+    { context : AppContext
     , status : Status
     }
 
@@ -36,13 +40,13 @@ type Status
     | Failed Http.Error
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
-    ( { session = session
+init : AppContext -> ( Model, Cmd Msg )
+init context =
+    ( { context = context
       , status = Loading
       }
     , Cmd.batch
-        [ retrieveSessionClients session.token
+        [ retrieveSessionClients context.session.token
             |> Http.send RetrievedClientSessions
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -98,70 +102,95 @@ formatTime time =
         ++ String.fromInt (Time.toYear Time.utc date) ++ " at " ++ hour
         ++ ":" ++ minutes ++ " " ++ ampm
 
-viewSessions : List UserSession -> Html Msg
+viewSessions : List UserSession -> Styled.Html Msg
 viewSessions userSessions =
     let
         rows =
-            List.map (\s -> tr []
-                [ td [] [ text s.username ]
-                , td [] [ text s.ipAddress ]
-                , td [] [ text (formatTime s.start) ]
-                , td [] [ text (formatTime s.lastAccess) ]
-                , td []
-                    [ button [ class (className "pure-button"), onClick (LogoutUser s.userId) ]
-                        [ text "Logout" ]
+            List.map (\s -> Styled.tr []
+                [ Styled.td [] [ Styled.text s.username ]
+                , Styled.td [] [ Styled.text s.ipAddress ]
+                , Styled.td [] [ Styled.text (formatTime s.start) ]
+                , Styled.td [] [ Styled.text (formatTime s.lastAccess) ]
+                , Styled.td []
+                    [ Styled.button [ StyledAttrs.class "pure-button", StyledEvents.onClick (LogoutUser s.userId) ]
+                        [ Styled.text "Logout" ]
                     ]
                 ]) userSessions
     in
-    Html.table [ class "pure-table" ]
-        [ thead [] 
-            [ tr []
-                [ th [] [ text "Username" ]
-                , th [] [ text "IP Address" ]
-                , th [] [ text "Start" ]
-                , th [] [ text "Last Access" ]
-                , th [] [ text "Actions" ]
+    Styled.table [ StyledAttrs.class "pure-table" ]
+        [ Styled.thead [] 
+            [ Styled.tr []
+                [ Styled.th [] [ Styled.text "Username" ]
+                , Styled.th [] [ Styled.text "IP Address" ]
+                , Styled.th [] [ Styled.text "Start" ]
+                , Styled.th [] [ Styled.text "Last Access" ]
+                , Styled.th [] [ Styled.text "Actions" ]
                 ]
             ]
-        , tbody [] rows
+        , Styled.tbody [] rows
         ]
 
 
 view : Model -> { title : String, content : Html Msg }
 view model =
+    let
+        toolbarStyle = 
+            [ displayFlex
+            , flexDirection row
+            , margin2 (px 20) (px 0)
+            ]
+    in
     { title = "Active User Sessions"
     , content =
-        div [ class (className "user-sessions-page") ]
-            [ div []
-                [ div [] []
-                , div []
-                    [ button [ class (className "pure-button"), onClick LogoutAllUsers]
-                        [ text "Logout All" ]
+        Styled.toUnstyled (
+            Styled.div [ StyledAttrs.class "user-sessions-page" ]
+                [ globalThemeStyles(model.context.theme)
+                , Styled.div
+                    [ StyledAttrs.css toolbarStyle ]
+                    [ Styled.div [ StyledAttrs.css [ flex (int 1) ] ] []
+                    , Styled.div []
+                        [ Styled.button
+                            [ StyledAttrs.class "button-secondary pure-button"
+                            , StyledAttrs.css [ marginRight (px 10) ]
+                            , StyledEvents.onClick RefreshSessions
+                            ]
+                            [ Styled.i
+                                [ StyledAttrs.class "icon-loop2", StyledAttrs.css [ marginRight (px 8) ] ]
+                                []
+                            , Styled.text "Refresh"
+                            ]
+                        , Styled.button
+                            [ StyledAttrs.class "button-error pure-button"
+                            , StyledEvents.onClick LogoutAllUsers
+                            ]
+                            [ Styled.text "Logout All" ]
+                        ]
+                    ]
+                , Styled.div []
+                    [ case model.status of
+                        Loaded userSessions ->
+                            viewSessions userSessions
+
+                        Loading ->
+                            Styled.text "Loading..."
+
+                        LoadingSlowly ->
+                            -- Loading.icon
+                            Styled.text "Loading..."
+
+                        Failed err ->
+                            case err of
+                                Http.BadStatus response ->
+                                    Styled.text "bad status"
+
+                                Http.BadPayload msg response ->
+                                    Styled.text msg
+
+                                _ ->
+                                    Styled.text "error"
                     ]
                 ]
-            , div []
-                [ case model.status of
-                    Loaded userSessions ->
-                        viewSessions userSessions
-
-                    Loading ->
-                        text "Loading..."
-
-                    LoadingSlowly ->
-                        Loading.icon
-
-                    Failed err ->
-                        case err of
-                            Http.BadStatus response ->
-                                text "bad status"
-
-                            Http.BadPayload msg response ->
-                                text msg
-
-                            _ ->
-                                text "error"
-                ]
-            ]
+        )
     }
 
 
@@ -177,6 +206,7 @@ type Msg
     | CompletedLogoutAllUsers (Result Http.Error ())
     | LogoutUser (String)
     | CompletedLogoutUser (Result Http.Error ())
+    | RefreshSessions
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -189,7 +219,7 @@ update msg model =
             ( model
             , case maybeAccountClient of
                 Just (accountClient) ->
-                    retrieveUserSessions (toSession model).token accountClient.id
+                    retrieveUserSessions (toContext model).session.token accountClient.id
                         |> Http.send RetrievedUserSessions
             
                 Nothing ->
@@ -223,29 +253,30 @@ update msg model =
         
         LogoutAllUsers ->
             ( model
-            , logoutAllUsers (toSession model).token
+            , logoutAllUsers (toContext model).session.token
                 |> Http.send CompletedLogoutAllUsers
             )
         
         CompletedLogoutAllUsers (Ok _) ->
-            ( model, Route.replaceUrl (toSession model).navKey Route.Home)
+            ( model, Route.replaceUrl (toContext model).session.navKey Route.Home)
         
         CompletedLogoutAllUsers (Err err) ->
-            init (toSession model)
+            init (toContext model)
         
         LogoutUser userId ->
             ( model
-            , logoutUser (toSession model).token userId
+            , logoutUser (toContext model).session.token userId
                 |> Http.send CompletedLogoutUser
             )
         
         CompletedLogoutUser (Ok _) ->
-            init (toSession model)
+            init (toContext model)
         
         CompletedLogoutUser (Err err) ->
-            init (toSession model)
+            init (toContext model)
 
-
+        RefreshSessions ->
+            init (toContext model)
             
 
 
@@ -261,7 +292,6 @@ subscriptions model =
 
 -- EXPORT
 
-
-toSession : Model -> Session
-toSession model =
-    model.session
+toContext : Model -> AppContext
+toContext model =
+    model.context
