@@ -1,7 +1,7 @@
 module Page.Home exposing (view)
 
 import Browser.Dom as Dom
-import Html exposing (..)
+import Html.Styled exposing (Html, toUnstyled, p, text)
 
 
 view : { title : String, content : Html msg }

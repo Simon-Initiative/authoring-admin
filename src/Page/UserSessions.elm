@@ -3,9 +3,6 @@ module Page.UserSessions exposing (Model, Msg, init, subscriptions, toContext, u
 import Browser.Navigation as Nav
 import Data.SessionClient exposing (SessionClient, retrieveSessionClients)
 import Data.UserSession exposing (UserSession, retrieveUserSessions, logoutAllUsers, logoutUser)
-import Html exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul, table, thead, tbody, tr, th, td)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value)
-import Html.Events exposing (onInput, onSubmit, onClick)
 import Css exposing (..)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
@@ -19,9 +16,9 @@ import Task
 import List.Extra
 import Time exposing (..)
 import Css exposing (..)
-import Html.Styled as Styled
-import Html.Styled.Attributes as StyledAttrs
-import Html.Styled.Events as StyledEvents
+import Html.Styled exposing (Html, toUnstyled, a, button, div, fieldset, h1, input, li, text, textarea, ul, table, thead, tbody, tr, th, td, i)
+import Html.Styled.Attributes exposing (css, attribute, class, placeholder, type_, value)
+import Html.Styled.Events exposing (onInput, onSubmit, onClick)
 import Theme exposing (globalThemeStyles)
 
 -- MODEL
@@ -102,32 +99,32 @@ formatTime time =
         ++ String.fromInt (Time.toYear Time.utc date) ++ " at " ++ hour
         ++ ":" ++ minutes ++ " " ++ ampm
 
-viewSessions : List UserSession -> Styled.Html Msg
+viewSessions : List UserSession -> Html Msg
 viewSessions userSessions =
     let
         rows =
-            List.map (\s -> Styled.tr []
-                [ Styled.td [] [ Styled.text s.username ]
-                , Styled.td [] [ Styled.text s.ipAddress ]
-                , Styled.td [] [ Styled.text (formatTime s.start) ]
-                , Styled.td [] [ Styled.text (formatTime s.lastAccess) ]
-                , Styled.td []
-                    [ Styled.button [ StyledAttrs.class "pure-button", StyledEvents.onClick (LogoutUser s.userId) ]
-                        [ Styled.text "Logout" ]
+            List.map (\s -> tr []
+                [ td [] [ text s.username ]
+                , td [] [ text s.ipAddress ]
+                , td [] [ text (formatTime s.start) ]
+                , td [] [ text (formatTime s.lastAccess) ]
+                , td []
+                    [ button [ class "pure-button", onClick (LogoutUser s.userId) ]
+                        [ text "Logout" ]
                     ]
                 ]) userSessions
     in
-    Styled.table [ StyledAttrs.class "pure-table" ]
-        [ Styled.thead [] 
-            [ Styled.tr []
-                [ Styled.th [] [ Styled.text "Username" ]
-                , Styled.th [] [ Styled.text "IP Address" ]
-                , Styled.th [] [ Styled.text "Start" ]
-                , Styled.th [] [ Styled.text "Last Access" ]
-                , Styled.th [] [ Styled.text "Actions" ]
+    table [ class "pure-table" ]
+        [ thead [] 
+            [ tr []
+                [ th [] [ text "Username" ]
+                , th [] [ text "IP Address" ]
+                , th [] [ text "Start" ]
+                , th [] [ text "Last Access" ]
+                , th [] [ text "Actions" ]
                 ]
             ]
-        , Styled.tbody [] rows
+        , tbody [] rows
         ]
 
 
@@ -142,55 +139,53 @@ view model =
     in
     { title = "Active User Sessions"
     , content =
-        Styled.toUnstyled (
-            Styled.div [ StyledAttrs.class "user-sessions-page" ]
-                [ globalThemeStyles(model.context.theme)
-                , Styled.div
-                    [ StyledAttrs.css toolbarStyle ]
-                    [ Styled.div [ StyledAttrs.css [ flex (int 1) ] ] []
-                    , Styled.div []
-                        [ Styled.button
-                            [ StyledAttrs.class "button-secondary pure-button"
-                            , StyledAttrs.css [ marginRight (px 10) ]
-                            , StyledEvents.onClick RefreshSessions
-                            ]
-                            [ Styled.i
-                                [ StyledAttrs.class "icon-loop2", StyledAttrs.css [ marginRight (px 8) ] ]
-                                []
-                            , Styled.text "Refresh"
-                            ]
-                        , Styled.button
-                            [ StyledAttrs.class "button-error pure-button"
-                            , StyledEvents.onClick LogoutAllUsers
-                            ]
-                            [ Styled.text "Logout All" ]
+        div [ class "user-sessions-page" ]
+            [ globalThemeStyles(model.context.theme)
+            , div
+                [ css toolbarStyle ]
+                [ div [ css [ flex (int 1) ] ] []
+                , div []
+                    [ button
+                        [ class "button-secondary pure-button"
+                        , css [ marginRight (px 10) ]
+                        , onClick RefreshSessions
                         ]
-                    ]
-                , Styled.div []
-                    [ case model.status of
-                        Loaded userSessions ->
-                            viewSessions userSessions
-
-                        Loading ->
-                            Styled.text "Loading..."
-
-                        LoadingSlowly ->
-                            -- Loading.icon
-                            Styled.text "Loading..."
-
-                        Failed err ->
-                            case err of
-                                Http.BadStatus response ->
-                                    Styled.text "bad status"
-
-                                Http.BadPayload msg response ->
-                                    Styled.text msg
-
-                                _ ->
-                                    Styled.text "error"
+                        [ i
+                            [ class "icon-loop2", css [ marginRight (px 8) ] ]
+                            []
+                        , text "Refresh"
+                        ]
+                    , button
+                        [ class "button-error pure-button"
+                        , onClick LogoutAllUsers
+                        ]
+                        [ text "Logout All" ]
                     ]
                 ]
-        )
+            , div []
+                [ case model.status of
+                    Loaded userSessions ->
+                        viewSessions userSessions
+
+                    Loading ->
+                        text "Loading..."
+
+                    LoadingSlowly ->
+                        -- Loading.icon
+                        text "Loading..."
+
+                    Failed err ->
+                        case err of
+                            Http.BadStatus response ->
+                                text "bad status"
+
+                            Http.BadPayload msg response ->
+                                text msg
+
+                            _ ->
+                                text "error"
+                ]
+            ]
     }
 
 

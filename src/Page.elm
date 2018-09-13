@@ -3,8 +3,9 @@ module Page exposing (Page(..), view)
 import Browser exposing (Document)
 import Debug
 import Html exposing (Html, a, button, div, footer, h3, i, img, li, nav, p, span, text, ul)
-import Html.Attributes exposing (class, classList, href, id, style)
-import Html.Events exposing (onClick)
+import Html.Styled exposing (Html, toUnstyled, a, button, div, footer, h3, i, img, li, nav, p, span, text, ul)
+import Html.Styled.Attributes exposing (class, classList, href, id, style)
+import Html.Styled.Events exposing (onClick)
 import Route exposing (Route, routeToString)
 import Session exposing (Session)
 
@@ -37,14 +38,16 @@ view : Page -> { title : String, content : Html msg } -> Document msg
 view page { title, content } =
     let
         body =
-            div [ class "layout" ]
-                [ viewMenuToggle
-                , viewMenu page
-                , div [ class "main" ]
-                    [ div [ class "header" ] [ h3 [] [ text title ] ]
-                    , div [ class "content" ] [ content ]
+            toUnstyled (
+                div [ class "layout" ]
+                    [ viewMenuToggle
+                    , viewMenu page
+                    , div [ class "main" ]
+                        [ div [ class "header" ] [ h3 [] [ text title ] ]
+                        , div [ class "content" ] [ content ]
+                        ]
                     ]
-                ]
+            )
     in
     { title = title ++ " - Admin"
     , body = [ body ]

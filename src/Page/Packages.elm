@@ -3,9 +3,9 @@ module Page.Packages exposing (Model, Msg, init, subscriptions, toContext, updat
 import Browser.Navigation as Nav
 import Data.Package as Package exposing (Package, retrievePackages)
 import Data.Username as Username exposing (Username)
-import Html exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Styled exposing (Html, toUnstyled, a, button, div, fieldset, h1, input, li, text, textarea, ul)
+import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value)
+import Html.Styled.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)

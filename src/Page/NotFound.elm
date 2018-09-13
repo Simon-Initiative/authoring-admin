@@ -1,8 +1,8 @@
 module Page.NotFound exposing (view)
 
 import Asset
-import Html exposing (Html, div, h1, img, main_, p, text)
-import Html.Attributes exposing (alt, class, id, src, tabindex)
+import Html.Styled exposing (Html, toUnstyled, div, h1, img, main_, p, text)
+import Html.Styled.Attributes exposing (alt, class, id, src, tabindex)
 
 
 

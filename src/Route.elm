@@ -4,8 +4,8 @@ import Browser.Navigation as Nav
 import Data.Guid exposing (Guid, urlParser)
 import Data.ResourceId exposing (ResourceId, urlParser)
 import Data.Username exposing (Username)
-import Html exposing (Attribute)
-import Html.Attributes as Attr
+import Html.Styled exposing (Attribute)
+import Html.Styled.Attributes as Attr
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
 

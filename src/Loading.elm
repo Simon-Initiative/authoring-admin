@@ -4,15 +4,15 @@ module Loading exposing (error, icon, slowThreshold)
 -}
 
 import Asset
-import Html exposing (Attribute, Html)
-import Html.Attributes exposing (alt, height, src, width)
+import Html.Styled exposing (Attribute, Html, img, text)
+import Html.Styled.Attributes exposing (alt, height, src, width)
 import Process
 import Task exposing (Task)
 
 
 icon : Html msg
 icon =
-    Html.img
+    img
         [ Asset.src Asset.loading
         , width 64
         , height 64
@@ -23,7 +23,7 @@ icon =
 
 error : String -> Html msg
 error str =
-    Html.text ("Error loading " ++ str ++ ".")
+    text ("Error loading " ++ str ++ ".")
 
 
 slowThreshold : Task x ()

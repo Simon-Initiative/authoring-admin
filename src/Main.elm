@@ -4,7 +4,7 @@ import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Data.Username exposing (Username)
 import Debug
-import Html exposing (..)
+import Html
 import Json.Decode as Decode exposing (Value)
 import Page exposing (Page)
 import Page.Home as Home
@@ -18,7 +18,7 @@ import Task
 import Time
 import Url exposing (Url)
 import AppContext exposing (AppContext)
-import Theme exposing (Theme, getLightTheme)
+import Theme exposing (Theme, getLightTheme, getDarkTheme)
 
 port onTokenUpdated : (String -> msg) -> Sub msg
 
@@ -72,7 +72,7 @@ view model =
     in
     case model of
         NotFound _ ->
-            viewPage Page.Other (\_ -> Ignored) NotFound.view
+            viewPage Page.Other (\_ -> Ignored) NotFound.view 
 
         Home home ->
             viewPage Page.Home (\_ -> Ignored) Home.view

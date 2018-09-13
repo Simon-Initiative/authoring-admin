@@ -79,8 +79,11 @@ variables =
 
 globalThemeStyles =
     Css.Global.global
-        [ selector "body"
+        [ html
+            [ backgroundColor colors.gray8 ]
+        , selector "body"
             [ height (vh 100)
+            , color colors.gray1
             ]
         , class "layout"
             [ height (pct 100)
@@ -88,10 +91,9 @@ globalThemeStyles =
             ]
         , class "main"
             [ height (pct 100)
-            , backgroundColor colors.light
             , overflow auto
             ]
-        -- -- buttons
+        -- buttons
         , each
             [ class "button-success"
             , class "button-error"
