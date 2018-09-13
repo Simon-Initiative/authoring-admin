@@ -1,7 +1,7 @@
 module Session exposing (Session)
 
 import Browser.Navigation as Nav
-
+import Theme exposing (Theme)
 
 
 -- TYPES
