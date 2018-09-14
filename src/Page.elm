@@ -10,6 +10,7 @@ import Session exposing (Session)
 import Theme exposing (getTheme, tcss)
 import Css exposing (..)
 import AppContext exposing (AppContext)
+import Html.Attributes
 
 {-| Determines which navbar link (if any) will be rendered as active.
 
@@ -62,12 +63,28 @@ viewMenuToggle =
     a [ href "#menu", class "menuLink", class "menu-link" ] [ span [] [] ]
 
 menuStyle themeType theme =
-    case themeType of
-        Theme.Light ->
-            [ backgroundColor theme.colors.gray7
-            ]
-        Theme.Dark ->
-            [ backgroundColor theme.colors.gray2 ]
+    [ displayFlex
+    , flexDirection column
+    , case themeType of
+            Theme.Light ->
+                Css.batch [ backgroundColor theme.colors.gray7
+                , displayFlex
+                , flexDirection column
+                ]
+            Theme.Dark ->
+                Css.batch [ backgroundColor theme.colors.gray2
+                , displayFlex
+                , flexDirection column
+                ]
+    ]
+
+pureMenuStyle themeType theme =
+    [ flex (int 1) ]
+
+logoutButtonStyle themeType theme =
+    [ height (px 30)
+    , margin (px 10)
+    ]
 
 viewMenu : Page -> AppContext -> Html msg
 viewMenu page context =
@@ -76,7 +93,7 @@ viewMenu page context =
             navbarLink page context.theme
     in
     div [ class "menu ", tcss context.theme menuStyle]
-        [ div [ class "pure-menu" ]
+        [ div [ class "pure-menu", tcss context.theme pureMenuStyle ]
             [ a [ class "pure-menu-heading", href "#" ] [ text "Admin " ]
             , ul [ class "pure-menu-list " ]
                 [ linkTo Route.Home [ text "Home" ]
@@ -85,6 +102,8 @@ viewMenu page context =
                 , linkTo Route.Users [ text "Users "]
                 ]
             ]
+        -- , button [ class "button-secondary", tcss context.theme logoutButtonStyle, redirectTo context.logoutUrl ]
+        --     [ text "Logout" ]
         ]
 
 
@@ -93,6 +112,11 @@ navbarLink page theme route linkContent =
     li [ classList [ ( "pure-menu-item", True ), ( "pure-menu-selected", isActive page route ) ] ]
         [ a [ class "pure-menu-link", Route.href route ] linkContent ]
 
+-- redirectTo : String -> Html.Styled.Attribute msg
+-- redirectTo destinationUrl =
+--   Html.Styled.Attributes.attribute 
+--     "onclick" 
+--     ("window.location.href = '" ++ destinationUrl ++ "'")
 
 isActive : Page -> Route -> Bool
 isActive page route =

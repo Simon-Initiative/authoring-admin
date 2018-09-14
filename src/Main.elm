@@ -4,7 +4,7 @@ import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Data.Username exposing (Username)
 import Html
-import Json.Decode as Decode exposing (Value)
+import Json.Decode as Decode exposing (Value, decodeValue)
 import Page exposing (Page)
 import Page.Home as Home
 import Page.NotFound as NotFound
@@ -20,6 +20,10 @@ import Time
 import Url exposing (Url)
 import AppContext exposing (AppContext)
 import Theme
+import Data.User exposing (User, userDecoder)
+import Data.Guid
+import Data.Username
+import Debug exposing (log)
 
 port onTokenUpdated : (String -> msg) -> Sub msg
 
@@ -41,6 +45,7 @@ type Model
 
 type alias Flags =
     { token : String
+    , userProfile : Value
     , logoutUrl : String
     , theme : String
     }
@@ -52,8 +57,31 @@ type alias Flags =
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
+    let
+        userProfile =
+            case decodeValue userDecoder flags.userProfile of
+                Ok profile ->
+                    profile
+                Err err ->
+                    (User
+                        (Data.Guid.Guid "")
+                        0
+                        (Data.Username.Username "")
+                        False
+                        "Unknown"
+                        "Unknown"
+                        "Unknown"
+                        []
+                    )
+    in
     changeRouteTo (Route.fromUrl url)
-        (Home (Home.Model (AppContext (Session navKey flags.token) (Theme.parseTheme flags.theme) )))
+        (Home (
+            Home.Model
+            (AppContext (Session navKey flags.token)
+            (Theme.parseTheme flags.theme)
+            ( userProfile )
+            flags.logoutUrl )
+        ))
 
 
 
@@ -130,11 +158,11 @@ toContext page =
 
         UserSessions pageModel ->
             UserSessions.toContext pageModel
-        Users users ->
-            Users.toContext users
+        Users pageModel ->
+            Users.toContext pageModel
 
-        UserDetails user ->
-            UserDetails.toContext user
+        UserDetails pageModel ->
+            UserDetails.toContext pageModel
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
