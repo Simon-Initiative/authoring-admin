@@ -55,10 +55,10 @@ viewUsers : List User -> Html Msg
 viewUsers users =
     let
         listItems =
-            List.map (\p -> li [] [ linkTo p.id p.email ]) users
+            List.map (\u -> li [] [ linkTo u.id u.email ]) users
 
-        linkTo guid title =
-            a [ Route.href (Route.UserDetails guid) ] [ text title ]
+        linkTo userId title =
+            a [ Route.href (Route.UserDetails userId) ] [ text title ]
     in
     ul [] listItems
 

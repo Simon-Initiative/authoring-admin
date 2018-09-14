@@ -87,8 +87,8 @@ view model =
         Users users ->
             viewPage Page.Users GotUsersMsg (Users.view users)
 
-        UserDetails details ->
-            viewPage Page.UserDetails GotUserDetailsMsg (UserDetails.view details)
+        UserDetails user ->
+            viewPage Page.UserDetails GotUserDetailsMsg (UserDetails.view user)
 
 
 
@@ -125,8 +125,8 @@ toSession page =
         Users users ->
             Users.toSession users
 
-        UserDetails details ->
-            UserDetails.toSession details
+        UserDetails user ->
+            UserDetails.toSession user
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -157,8 +157,8 @@ changeRouteTo maybeRoute model =
             Users.init session
                 |> updateWith Users GotUsersMsg model
 
-        Just (Route.UserDetails resourceId) ->
-            UserDetails.init resourceId session
+        Just (Route.UserDetails userId) ->
+            UserDetails.init userId session
                 |> updateWith UserDetails GotUserDetailsMsg model
 
 

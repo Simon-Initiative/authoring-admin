@@ -1,4 +1,4 @@
-module Data.User exposing (PackageMembership, PackageRole, Title, User, retrieveUsers)
+module Data.User exposing (PackageMembership, PackageRole, Title, User, retrieveUsers, userDecoder)
 
 import Data.Guid exposing (Guid, decoder, toGuid)
 import Data.ResourceId exposing (ResourceId, decoder)
@@ -12,6 +12,7 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 
 type alias User =
     { id : Guid
+    , createdTimestamp : Int
     , username : Username
     , enabled : Bool
     , firstName : String
@@ -112,6 +113,7 @@ userDecoder : Decoder User
 userDecoder =
     succeed User
         |> required "id" Data.Guid.decoder
+        |> required "createdTimestamp" int
         |> required "username" Data.Username.decoder
         |> required "enabled" bool
         |> required "firstName" string
