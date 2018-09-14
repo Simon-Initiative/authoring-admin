@@ -24,10 +24,18 @@
   var app = null;
 
   var onLoginSuccess = function(token, profile, logoutUrl, managementUrl) {
+    var storedTheme = localStorage.getItem('theme');
+    var theme = storedTheme ? JSON.parse(storedTheme) : '';
+
     app = Elm.Main.init({ flags: {
       token: token,
-      logoutUrl: logoutUrl
+      logoutUrl: logoutUrl,
+      theme: theme,
     }});
+
+    app.ports.setStorage.subscribe(function(state) {
+        localStorage.setItem('theme', JSON.stringify(state));
+    });
   };
 
   var onLoginFailure = function(err) {

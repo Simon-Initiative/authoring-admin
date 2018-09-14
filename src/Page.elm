@@ -1,14 +1,15 @@
 module Page exposing (Page(..), view)
 
 import Browser exposing (Document)
-import Debug
 import Html exposing (Html, a, button, div, footer, h3, i, img, li, nav, p, span, text, ul)
 import Html.Styled exposing (Html, toUnstyled, a, button, div, footer, h3, i, img, li, nav, p, span, text, ul)
 import Html.Styled.Attributes exposing (class, classList, href, id, style)
 import Html.Styled.Events exposing (onClick)
 import Route exposing (Route, routeToString)
 import Session exposing (Session)
-
+import Theme exposing (getTheme, tcss)
+import Css exposing (..)
+import AppContext exposing (AppContext)
 
 {-| Determines which navbar link (if any) will be rendered as active.
 
@@ -34,14 +35,14 @@ isLoading is for determining whether we should show a loading spinner
 in the header. (This comes up during slow page transitions.)
 
 -}
-view : Page -> { title : String, content : Html msg } -> Document msg
-view page { title, content } =
+view : Page -> { title : String, content : Html msg } -> AppContext -> Document msg
+view page { title, content } context =
     let
         body =
             toUnstyled (
                 div [ class "layout" ]
                     [ viewMenuToggle
-                    , viewMenu page
+                    , viewMenu page context
                     , div [ class "main" ]
                         [ div [ class "header" ] [ h3 [] [ text title ] ]
                         , div [ class "content" ] [ content ]
@@ -58,14 +59,24 @@ viewMenuToggle : Html msg
 viewMenuToggle =
     a [ href "#menu", class "menuLink", class "menu-link" ] [ span [] [] ]
 
+menuStyle : Theme.Theme -> Theme.Instance msg -> List Style
+menuStyle themeType theme =
+    case themeType of
+        Theme.Light ->
+            [ backgroundColor theme.colors.gray7
+            , color theme.colors.gray3
+            ]
+    
+        Theme.Dark ->
+            [ backgroundColor theme.colors.gray3 ]
 
-viewMenu : Page -> Html msg
-viewMenu page =
+viewMenu : Page -> AppContext -> Html msg
+viewMenu page context =
     let
         linkTo =
             navbarLink page
     in
-    div [ class "menu " ]
+    div [ class "menu ", tcss context.theme menuStyle]
         [ div [ class "pure-menu" ]
             [ a [ class "pure-menu-heading", href "#" ] [ text "Admin " ]
             , ul [ class "pure-menu-list " ]

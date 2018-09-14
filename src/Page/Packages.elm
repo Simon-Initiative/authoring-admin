@@ -15,7 +15,7 @@ import Log
 import Route
 import AppContext exposing (AppContext)
 import Task
-
+import Theme exposing (globalThemeStyles)
 
 
 -- MODEL
@@ -68,7 +68,8 @@ view model =
     { title = "All Course Packages"
     , content =
         div [ class "courses-page" ]
-            [ case model.status of
+            [ globalThemeStyles(model.context.theme)
+            , case model.status of
                 Loaded packages ->
                     viewPackages packages
 

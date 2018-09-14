@@ -1,4 +1,4 @@
-module Theme exposing (Theme, Model, getTheme, tcss, globalThemeStyles, getLightTheme, getDarkTheme)
+module Theme exposing (..)
 
 import Html
 import Html.Styled exposing (Html)
@@ -14,11 +14,16 @@ type Theme
     = Light
     | Dark
 
--- why is this necessary?
-getLightTheme =
-    Light
-getDarkTheme =
-    Dark
+parseTheme themeName =
+    case themeName of
+        "light" ->
+            Light
+        "dark" ->
+            Dark
+        _ ->
+            -- default to light theme
+            Light
+            
 
 type alias ThemeColors =
     { primary: Color
@@ -65,7 +70,7 @@ type alias ThemeFonts =
     , mono: Style
     }
 
-type alias Model msg =
+type alias Instance msg =
     { name: String
     , globalThemeStyles: Html msg
     , colors: ThemeColors
@@ -74,7 +79,7 @@ type alias Model msg =
     , variables: Dict String String
     }
 
-getTheme : Theme -> Model msg
+getTheme : Theme -> Instance msg
 getTheme theme =
     case theme of
         Light ->
@@ -85,8 +90,9 @@ getTheme theme =
 globalThemeStyles theme =
     (getTheme theme).globalThemeStyles
 
+tcss : Theme -> (Theme -> Instance msg -> List Style) -> Html.Styled.Attribute msg
 tcss currentTheme themeStyles =
-    Html.Styled.Attributes.css (themeStyles currentTheme)
+    Html.Styled.Attributes.css (themeStyles currentTheme (getTheme currentTheme))
 
 -- lighten
 -- darken

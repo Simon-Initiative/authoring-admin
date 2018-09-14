@@ -16,7 +16,7 @@ load =
 
 
 name =
-    "Light"
+    "light"
 
 colors = 
     { primary = hex "2C3E50"
@@ -81,7 +81,7 @@ globalThemeStyles =
     Css.Global.global
         [ html
             [ backgroundColor colors.gray8 ]
-        , selector "body"
+        , body
             [ height (vh 100)
             , color colors.gray1
             ]

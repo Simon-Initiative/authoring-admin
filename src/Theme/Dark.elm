@@ -16,7 +16,7 @@ load =
 
 
 name =
-    "Dark"
+    "dark"
 
 
 colors = 
@@ -79,12 +79,15 @@ variables =
 
         
 globalThemeStyles =
+    let
+        fontColor = colors.gray7
+    in
     Css.Global.global
         [ html
             [ backgroundColor colors.gray1 ]
-        , selector "body"
+        , body
             [ height (vh 100)
-            , color colors.gray7
+            , color fontColor
             ]
         , class "layout"
             [ height (pct 100)
@@ -94,6 +97,7 @@ globalThemeStyles =
             [ height (pct 100)
             , overflow auto
             ]
+
         -- buttons
         , each
             [ class "button-success"
@@ -121,14 +125,43 @@ globalThemeStyles =
             [
                 backgroundColor (rgb 66 184 221)
             ]
-        
-        -- table
+
+        -- links
+        , a
+            [ color (hex "1E8DD6")
+            , hover
+                [ color (hex "58B2ED")]
+            , active
+                [ color (hex "0084DB")]
+            , visited
+                [ color (hex "6E35E8")]
+            ]
+
+        -- tables
         , class "pure-table"
-            [ descendants
-                [ selector "tr:nth-child(even)"
+            [ borderColor colors.gray3
+            , descendants
+                [ thead
+                    [ backgroundColor colors.gray2
+                    , color fontColor
+                    ]
+                , each
+                    [ th
+                    , td
+                    ]
+                    [ borderLeftColor colors.gray3 ]
+                , selector "tr:nth-child(even)"
                     [ backgroundColor (hex "F5F9FE")
                     ]
                 ]
+            ]
+
+        -- misc
+        , select
+            [ backgroundColor colors.gray2 ]
+        , class "header"
+            [ color colors.gray6
+            , borderBottomColor colors.gray3
             ]
         ]
 

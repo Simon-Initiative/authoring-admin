@@ -3,7 +3,6 @@ port module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Data.Username exposing (Username)
-import Debug
 import Html
 import Json.Decode as Decode exposing (Value)
 import Page exposing (Page)
@@ -18,10 +17,9 @@ import Task
 import Time
 import Url exposing (Url)
 import AppContext exposing (AppContext)
-import Theme exposing (Theme, getLightTheme, getDarkTheme)
+import Theme
 
 port onTokenUpdated : (String -> msg) -> Sub msg
-
 
 
 -- WARNING: Based on discussions around how asset management features
@@ -29,10 +27,9 @@ port onTokenUpdated : (String -> msg) -> Sub msg
 -- most of this file to become unnecessary in a future release of Elm.
 -- Avoid putting things in here unless there is no alternative!
 
-
 type Model
-    = NotFound AppContext
-    | Home AppContext
+    = NotFound NotFound.Model
+    | Home Home.Model
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
     | UserSessions UserSessions.Model
@@ -41,6 +38,7 @@ type Model
 type alias Flags =
     { token : String
     , logoutUrl : String
+    , theme : String
     }
 
 
@@ -51,7 +49,7 @@ type alias Flags =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     changeRouteTo (Route.fromUrl url)
-        (Home (AppContext (Session navKey flags.token) getLightTheme ))
+        (Home (Home.Model (AppContext (Session navKey flags.token) (Theme.parseTheme flags.theme) )))
 
 
 
@@ -64,18 +62,18 @@ view model =
         viewPage page toMsg config =
             let
                 { title, body } =
-                    Page.view page config
+                    Page.view page config (toContext model)
             in
             { title = title
             , body = List.map (Html.map toMsg) body
             }
     in
     case model of
-        NotFound _ ->
-            viewPage Page.Other (\_ -> Ignored) NotFound.view 
+        NotFound notFoundModel ->
+            viewPage Page.Other (\_ -> Ignored) (NotFound.view notFoundModel)
 
-        Home home ->
-            viewPage Page.Home (\_ -> Ignored) Home.view
+        Home homeModel ->
+            viewPage Page.Home HomeMsg (Home.view homeModel)
 
         Packages packages ->
             viewPage Page.Packages GotPackagesMsg (Packages.view packages)
@@ -100,25 +98,27 @@ type Msg
     | GotPackagesMsg Packages.Msg
     | GotPackageDetailsMsg PackageDetails.Msg
     | GotSessionsMsg UserSessions.Msg
+    | HomeMsg Home.Msg
+    | NotFoundMsg NotFound.Msg
 
 
 toContext : Model -> AppContext
 toContext page =
     case page of
-        NotFound context ->
-            context
+        NotFound pageModel ->
+            NotFound.toContext pageModel
 
-        Home context ->
-            context
+        Home pageModel ->
+            Home.toContext pageModel
 
-        Packages packages ->
-            Packages.toContext packages
+        Packages pageModel ->
+            Packages.toContext pageModel
 
-        PackageDetails details ->
-            PackageDetails.toContext details
+        PackageDetails pageModel ->
+            PackageDetails.toContext pageModel
 
-        UserSessions sessions ->
-            UserSessions.toContext sessions
+        UserSessions pageModel ->
+            UserSessions.toContext pageModel
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
@@ -128,13 +128,15 @@ changeRouteTo maybeRoute model =
     in
     case maybeRoute of
         Nothing ->
-            ( NotFound context, Cmd.none )
+            NotFound.init context
+                |> updateWith NotFound NotFoundMsg model
 
         Just Route.Root ->
             ( model, Route.replaceUrl context.session.navKey Route.Home )
 
         Just Route.Home ->
-            ( Home context, Cmd.none )
+            Home.init context
+                |> updateWith Home HomeMsg model
 
         Just Route.Packages ->
             Packages.init context
@@ -206,6 +208,10 @@ update msg model =
         ( GotSessionsMsg subMsg, UserSessions userSessions ) ->
             UserSessions.update subMsg userSessions
                 |> updateWith UserSessions GotSessionsMsg model
+         
+        ( HomeMsg subMsg, Home homeModel) ->
+            Home.update subMsg homeModel
+                |> updateWith Home HomeMsg model
 
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
@@ -221,20 +227,20 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
 updateContext : AppContext -> Model -> Model
 updateContext context model =
     case model of
-        NotFound _ ->
-            NotFound context
+        NotFound pageModel ->
+            NotFound pageModel
 
-        Home _ ->
-            Home context
+        Home pageModel ->
+            Home { pageModel | context = context }
 
-        Packages courseModel ->
-            Packages { courseModel | context = context }
+        Packages pageModel ->
+            Packages { pageModel | context = context }
 
-        PackageDetails details ->
-            PackageDetails { details | context = context }
+        PackageDetails pageModel ->
+            PackageDetails { pageModel | context = context }
 
-        UserSessions sessions ->
-            UserSessions { sessions | context = context }
+        UserSessions pageModel ->
+            UserSessions { pageModel | context = context }
 
 
 -- SUBSCRIPTIONS
@@ -254,7 +260,7 @@ subscriptions model =
                 PackageDetails details ->
                     [ Sub.map GotPackageDetailsMsg (PackageDetails.subscriptions details) ]
 
-                Home home ->
+                Home homeModel ->
                     []
 
                 UserSessions sessions ->

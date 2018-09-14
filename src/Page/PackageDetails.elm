@@ -19,7 +19,7 @@ import Log
 import Route
 import AppContext exposing (AppContext)
 import Task
-
+import Theme exposing (globalThemeStyles)
 
 
 -- MODEL
@@ -73,7 +73,8 @@ view model =
     { title = "Package Details"
     , content =
         div [ class "details-page" ]
-            [ case model.status of
+            [ globalThemeStyles(model.context.theme)
+            , case model.status of
                 Loaded details ->
                     viewDetails details
 
