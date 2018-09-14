@@ -1,4 +1,4 @@
-module Page.PackageDetails exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.PackageDetails exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
 import Browser.Navigation as Nav
 import Data.Guid as Guid exposing (Guid)
@@ -7,9 +7,9 @@ import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrieveP
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
-import Html exposing (Html, button, div, fieldset, h1, h3, input, li, text, textarea, ul, label)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value, checked)
-import Html.Events exposing (onInput, onSubmit, onClick)
+import Html.Styled exposing (Html, toUnstyled, button, div, fieldset, h1, h3, input, li, text, textarea, ul, label)
+import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value, checked)
+import Html.Styled.Events exposing (onInput, onSubmit, onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)
@@ -17,14 +17,16 @@ import Json.Encode as Encode
 import Loading
 import Log
 import Route
-import Session exposing (Session)
+import AppContext exposing (AppContext)
 import Task
+import Theme exposing (globalThemeStyles)
+
 
 -- MODEL
 
 
 type alias Model =
-    { session : Session
+    { context : AppContext
     , status : Status
     }
 
@@ -36,14 +38,13 @@ type Status
     | Failed Http.Error
 
 
-
-init : Guid -> Session -> ( Model, Cmd Msg )
-init packageId session =
-    ( { session = session
+init : Guid -> AppContext -> ( Model, Cmd Msg )
+init packageId context =
+    ( { context = context
       , status = Loading
       }
     , Cmd.batch
-        [ retrievePackageDetails packageId session.token
+        [ retrievePackageDetails packageId context.session.token
             |> Http.send RetrievedDetails
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -90,7 +91,8 @@ view model =
     { title = "Package Details"
     , content =
         div [ class "details-page" ]
-            [ case model.status of
+            [ globalThemeStyles(model.context.theme)
+            , case model.status of
                 Loaded details ->
                     viewDetails details
 
@@ -152,7 +154,7 @@ update msg model =
             in
             ({model | status =  Loaded {details | visible = viz}}
             , Cmd.batch
-                [ setPackageVisible details.guid viz model.session.token
+                [ setPackageVisible details.guid viz (toContext model).session.token
                     |> Http.send PkgVisibleDetails
                 ])
 
@@ -162,7 +164,7 @@ update msg model =
             in
              ({model | status = Loaded {details | editable = loc}}
             , Cmd.batch
-                [ setPackageEditable details.guid loc model.session.token
+                [ setPackageEditable details.guid loc (toContext model).session.token
                     |> Http.send PkgEditableDetails
                 ])
 
@@ -192,7 +194,6 @@ subscriptions model =
 
 -- EXPORT
 
-
-toSession : Model -> Session
-toSession model =
-    model.session
+toContext : Model -> AppContext
+toContext model =
+    model.context

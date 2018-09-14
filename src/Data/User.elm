@@ -116,7 +116,7 @@ userDecoder =
         |> required "createdTimestamp" int
         |> required "username" Data.Username.decoder
         |> required "enabled" bool
-        |> required "firstName" string
-        |> required "lastName" string
-        |> required "email" string
+        |> optional "firstName" string ""
+        |> optional "lastName" string ""
+        |> optional "email" string ""
         |> optional "attributes" goodDecoder []

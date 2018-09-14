@@ -1,4 +1,4 @@
-module Data.Username exposing (Username, decoder, encode, toHtml, toString, urlParser)
+module Data.Username exposing (..)
 
 import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder)

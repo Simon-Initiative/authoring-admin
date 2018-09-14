@@ -1,11 +1,11 @@
-module Page.Users exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.Users exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
 import Browser.Navigation as Nav
 import Data.User as User exposing (User, retrieveUsers)
 import Data.Username as Username exposing (Username)
-import Html exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Styled exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul)
+import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value)
+import Html.Styled.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)
@@ -13,8 +13,9 @@ import Json.Encode as Encode
 import Loading
 import Log
 import Route
-import Session exposing (Session)
+import AppContext exposing (AppContext)
 import Task
+import Theme exposing (globalThemeStyles)
 
 
 
@@ -22,7 +23,7 @@ import Task
 
 
 type alias Model =
-    { session : Session
+    { context : AppContext
     , status : Status
     }
 
@@ -34,13 +35,13 @@ type Status
     | Failed Http.Error
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
-    ( { session = session
+init : AppContext -> ( Model, Cmd Msg )
+init context =
+    ( { context = context
       , status = Loading
       }
     , Cmd.batch
-        [ retrieveUsers session.token
+        [ retrieveUsers context.session.token
             |> Http.send RetrievedUsers
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -55,7 +56,7 @@ viewUsers : List User -> Html Msg
 viewUsers users =
     let
         listItems =
-            List.map (\u -> li [] [ linkTo u.id u.email ]) users
+            List.map (\u -> li [] [ linkTo u.id (Username.toString u.username) ]) users
 
         linkTo userId title =
             a [ Route.href (Route.UserDetails userId) ] [ text title ]
@@ -68,7 +69,8 @@ view model =
     { title = "All Course Users"
     , content =
         div [ class "courses-page" ]
-            [ case model.status of
+            [ globalThemeStyles(model.context.theme)
+            , case model.status of
                 Loaded users ->
                     viewUsers users
 
@@ -138,6 +140,6 @@ subscriptions model =
 -- EXPORT
 
 
-toSession : Model -> Session
-toSession model =
-    model.session
+toContext : Model -> AppContext
+toContext model =
+    model.context
