@@ -1,4 +1,4 @@
-module Data.Guid exposing (Guid, decoder, encode, toHtml, toString, urlParser)
+module Data.Guid exposing (Guid, decoder, encode, toGuid, toHtml, toString, urlParser)
 
 import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder)
@@ -35,6 +35,11 @@ encode (Guid id) =
 toString : Guid -> String
 toString (Guid id) =
     id
+
+
+toGuid : String -> Guid
+toGuid s =
+    Guid s
 
 
 urlParser : Url.Parser.Parser (Guid -> a) a

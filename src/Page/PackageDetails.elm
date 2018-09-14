@@ -3,13 +3,13 @@ module Page.PackageDetails exposing (Model, Msg, init, subscriptions, toContext,
 import Browser.Navigation as Nav
 import Data.Guid as Guid exposing (Guid)
 import Data.Package as Package exposing (Package)
-import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails)
+import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails, setPackageVisible, setPackageEditable)
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, toUnstyled, button, div, fieldset, h1, h3, input, li, text, textarea, ul)
-import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value)
-import Html.Styled.Events exposing (onInput, onSubmit)
+import Html.Styled exposing (Html, toUnstyled, button, div, fieldset, h1, h3, input, li, text, textarea, ul, label)
+import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value, checked)
+import Html.Styled.Events exposing (onInput, onSubmit, onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)
@@ -50,6 +50,13 @@ init packageId context =
         ]
     )
 
+type Msg
+    = RetrievedDetails (Result Http.Error PackageDetails)
+    | PassedSlowLoadThreshold
+    | ToggleVisible PackageDetails
+    | ToggleEditable PackageDetails
+    | PkgEditableDetails (Result Http.Error PackageDetails.PkgEditable)
+    | PkgVisibleDetails (Result Http.Error PackageDetails.PkgVisible)
 
 
 -- VIEW
@@ -59,7 +66,18 @@ viewDetails : PackageDetails -> Html Msg
 viewDetails details =
     div []
         [ h3 [] [ text details.title ]
-        , viewResources details.resources
+        , div [] [
+            label [] [
+                input [type_ "checkbox"
+                , checked <| details.visible
+                , onClick <| ToggleVisible details][], text <| " visible"
+            ]
+            , label [] [
+                input [type_ "checkbox"
+                , checked <| details.editable
+                , onClick <| ToggleEditable details][], text <| " editable"]
+            ],
+            viewResources details.resources
         ]
 
 
@@ -102,11 +120,6 @@ view model =
 -- UPDATE
 
 
-type Msg
-    = RetrievedDetails (Result Http.Error PackageDetails)
-    | PassedSlowLoadThreshold
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -119,6 +132,41 @@ update msg model =
             ( { model | status = Failed err }
             , Cmd.none
             )
+        PkgEditableDetails (Ok locked) ->
+            ( model
+             , Cmd.none
+            )
+        PkgEditableDetails (Err err) ->
+            ( model
+             , Cmd.none
+            )
+        PkgVisibleDetails (Ok hidden) ->
+            ( model
+             , Cmd.none
+            )
+        PkgVisibleDetails (Err err) ->
+            ( model
+             , Cmd.none
+            )
+        ToggleVisible details ->
+            let
+                viz = toggle details.visible
+            in
+            ({model | status =  Loaded {details | visible = viz}}
+            , Cmd.batch
+                [ setPackageVisible details.guid viz (toContext model).session.token
+                    |> Http.send PkgVisibleDetails
+                ])
+
+        ToggleEditable details ->
+            let
+                loc = toggle details.editable
+            in
+             ({model | status = Loaded {details | editable = loc}}
+            , Cmd.batch
+                [ setPackageEditable details.guid loc (toContext model).session.token
+                    |> Http.send PkgEditableDetails
+                ])
 
         PassedSlowLoadThreshold ->
             case model.status of
@@ -131,6 +179,9 @@ update msg model =
                     ( model, Cmd.none )
 
 
+toggle: Bool -> Bool
+toggle bool =
+    not bool
 
 -- SUBSCRIPTIONS
 
