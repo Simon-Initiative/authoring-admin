@@ -24,6 +24,8 @@ type Page
     | Packages
     | PackageDetails
     | UserSessions
+    | Users
+    | UserDetails
 
 
 {-| Take a page's Html and frames it with a header and footer.
@@ -80,6 +82,7 @@ viewMenu page context =
                 [ linkTo Route.Home [ text "Home" ]
                 , linkTo Route.Packages [ text "Packages" ]
                 , linkTo Route.UserSessions [ text "Sessions" ]
+                , linkTo Route.Users [ text "Users "]
                 ]
             ]
         ]
@@ -104,6 +107,12 @@ isActive page route =
             True
 
         ( UserSessions, Route.UserSessions ) ->
+            True
+            
+        ( Users, Route.Users ) ->
+            True
+
+        ( UserDetails, Route.Users ) ->
             True
 
         _ ->

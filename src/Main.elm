@@ -11,6 +11,8 @@ import Page.NotFound as NotFound
 import Page.PackageDetails as PackageDetails
 import Page.Packages as Packages
 import Page.UserSessions as UserSessions
+import Page.UserDetails as UserDetails
+import Page.Users as Users
 import Route exposing (Route)
 import Session exposing (Session)
 import Task
@@ -33,6 +35,8 @@ type Model
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
     | UserSessions UserSessions.Model
+    | Users Users.Model
+    | UserDetails UserDetails.Model
 
 
 type alias Flags =
@@ -73,7 +77,7 @@ view model =
             viewPage Page.Other (\_ -> Ignored) (NotFound.view notFoundModel)
 
         Home homeModel ->
-            viewPage Page.Home HomeMsg (Home.view homeModel)
+            viewPage Page.Home GotHomeMsg (Home.view homeModel)
 
         Packages packages ->
             viewPage Page.Packages GotPackagesMsg (Packages.view packages)
@@ -83,6 +87,11 @@ view model =
 
         UserSessions sessions ->
             viewPage Page.UserSessions GotSessionsMsg (UserSessions.view sessions)
+        Users users ->
+            viewPage Page.Users GotUsersMsg (Users.view users)
+
+        UserDetails user ->
+            viewPage Page.UserDetails GotUserDetailsMsg (UserDetails.view user)
 
 
 
@@ -98,8 +107,10 @@ type Msg
     | GotPackagesMsg Packages.Msg
     | GotPackageDetailsMsg PackageDetails.Msg
     | GotSessionsMsg UserSessions.Msg
-    | HomeMsg Home.Msg
+    | GotHomeMsg Home.Msg
     | NotFoundMsg NotFound.Msg
+    | GotUsersMsg Users.Msg
+    | GotUserDetailsMsg UserDetails.Msg
 
 
 toContext : Model -> AppContext
@@ -119,6 +130,12 @@ toContext page =
 
         UserSessions pageModel ->
             UserSessions.toContext pageModel
+        Users users ->
+            Users.toContext users
+
+        UserDetails user ->
+            UserDetails.toContext user
+
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
@@ -136,7 +153,7 @@ changeRouteTo maybeRoute model =
 
         Just Route.Home ->
             Home.init context
-                |> updateWith Home HomeMsg model
+                |> updateWith Home GotHomeMsg model
 
         Just Route.Packages ->
             Packages.init context
@@ -150,6 +167,13 @@ changeRouteTo maybeRoute model =
             UserSessions.init context
                 |> updateWith UserSessions GotSessionsMsg model
 
+        Just Route.Users -> 
+            Users.init context
+                |> updateWith Users GotUsersMsg model
+
+        Just (Route.UserDetails userId) ->
+            UserDetails.init userId context
+                |> updateWith UserDetails GotUserDetailsMsg model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -209,9 +233,16 @@ update msg model =
             UserSessions.update subMsg userSessions
                 |> updateWith UserSessions GotSessionsMsg model
          
-        ( HomeMsg subMsg, Home homeModel) ->
+        ( GotHomeMsg subMsg, Home homeModel) ->
             Home.update subMsg homeModel
-                |> updateWith Home HomeMsg model
+                |> updateWith Home GotHomeMsg model
+        ( GotUsersMsg subMsg, Users users ) ->
+            Users.update subMsg users
+                |> updateWith Users GotUsersMsg model
+
+        ( GotUserDetailsMsg subMsg, UserDetails details ) ->
+            UserDetails.update subMsg details
+                |> updateWith UserDetails GotUserDetailsMsg model
 
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
@@ -241,6 +272,13 @@ updateContext context model =
 
         UserSessions pageModel ->
             UserSessions { pageModel | context = context }
+            
+        Users pageModel ->
+            Users { pageModel | context = context }
+
+        UserDetails pageModel ->
+            UserDetails { pageModel | context = context }
+
 
 
 -- SUBSCRIPTIONS
@@ -260,7 +298,13 @@ subscriptions model =
                 PackageDetails details ->
                     [ Sub.map GotPackageDetailsMsg (PackageDetails.subscriptions details) ]
 
-                Home homeModel ->
+                Users users -> 
+                    [ Sub.map GotUsersMsg (Users.subscriptions users) ]
+
+                UserDetails details ->
+                    [ Sub.map GotUserDetailsMsg (UserDetails.subscriptions details) ]
+
+                Home home ->
                     []
 
                 UserSessions sessions ->

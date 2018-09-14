@@ -1,4 +1,4 @@
-module Data.User exposing (PackageMembership, PackageRole, Title, User, retrieveUsers)
+module Data.User exposing (PackageMembership, PackageRole, Title, User, retrieveUsers, userDecoder)
 
 import Data.Guid exposing (Guid, decoder, toGuid)
 import Data.ResourceId exposing (ResourceId, decoder)
@@ -12,6 +12,7 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 
 type alias User =
     { id : Guid
+    , createdTimestamp : Int
     , username : Username
     , enabled : Bool
     , firstName : String
@@ -89,8 +90,8 @@ getTitle str accum =
 
 
 convertToPackages : List ( String, List String ) -> List PackageMembership
-convertToPackages list =
-    List.map (\( guid, items ) -> PackageMembership (toGuid guid) (extractTitle items) Contributor) list
+convertToPackages =
+    List.map (\( guid, items ) -> PackageMembership (toGuid guid) (extractTitle items) Contributor)
 
 
 packagesDecoder : Decoder (List ( String, List String ))
@@ -112,9 +113,10 @@ userDecoder : Decoder User
 userDecoder =
     succeed User
         |> required "id" Data.Guid.decoder
+        |> required "createdTimestamp" int
         |> required "username" Data.Username.decoder
         |> required "enabled" bool
-        |> required "firstName" string
-        |> required "lastName" string
-        |> required "email" string
+        |> optional "firstName" string ""
+        |> optional "lastName" string ""
+        |> optional "email" string ""
         |> optional "attributes" goodDecoder []
