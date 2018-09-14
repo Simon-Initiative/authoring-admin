@@ -121,6 +121,20 @@ globalThemeStyles =
                 backgroundColor (rgb 66 184 221)
             ]
         
+        -- menu
+        , selector ".layout, .menu, .menu-link"
+            [ property "transition" "unset" ]
+        , selector ".pure-menu li a:hover, .pure-menu li a:focus"
+            [ backgroundColor transparent ]
+        , selector ".pure-menu li a:hover"
+            [ backgroundColor (hex "C0E3FA") ]
+        , selector ".pure-menu ul"
+            [ property "border-top" "none" ]
+        , selector ".pure-menu-list > .pure-menu-selected"
+            [ backgroundColor (hex "68B8ED") ]
+        , selector ".pure-menu-list > .pure-menu-selected a:hover"
+            [ backgroundColor transparent ]
+
         -- table
         , class "pure-table"
             [ descendants

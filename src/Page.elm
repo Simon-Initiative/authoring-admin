@@ -59,22 +59,19 @@ viewMenuToggle : Html msg
 viewMenuToggle =
     a [ href "#menu", class "menuLink", class "menu-link" ] [ span [] [] ]
 
-menuStyle : Theme.Theme -> Theme.Instance msg -> List Style
 menuStyle themeType theme =
     case themeType of
         Theme.Light ->
             [ backgroundColor theme.colors.gray7
-            , color theme.colors.gray3
             ]
-    
         Theme.Dark ->
-            [ backgroundColor theme.colors.gray3 ]
+            [ backgroundColor theme.colors.gray2 ]
 
 viewMenu : Page -> AppContext -> Html msg
 viewMenu page context =
     let
         linkTo =
-            navbarLink page
+            navbarLink page context.theme
     in
     div [ class "menu ", tcss context.theme menuStyle]
         [ div [ class "pure-menu" ]
@@ -88,8 +85,8 @@ viewMenu page context =
         ]
 
 
-navbarLink : Page -> Route -> List (Html msg) -> Html msg
-navbarLink page route linkContent =
+navbarLink : Page -> Theme.Theme -> Route -> List (Html msg) -> Html msg
+navbarLink page theme route linkContent =
     li [ classList [ ( "pure-menu-item", True ), ( "pure-menu-selected", isActive page route ) ] ]
         [ a [ class "pure-menu-link", Route.href route ] linkContent ]
 
@@ -104,6 +101,9 @@ isActive page route =
             True
 
         ( PackageDetails, Route.Packages ) ->
+            True
+
+        ( UserSessions, Route.UserSessions ) ->
             True
 
         _ ->

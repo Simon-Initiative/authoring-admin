@@ -2,6 +2,7 @@ module Theme.Dark exposing (..)
 
 import Css exposing (..)
 import Css.Global exposing (..)
+import Css.Transitions exposing (transition)
 import Dict exposing (Dict)
 
 
@@ -134,7 +135,7 @@ globalThemeStyles =
             , active
                 [ color (hex "0084DB")]
             , visited
-                [ color (hex "6E35E8")]
+                [ color (hex "8658E8")]
             ]
 
         -- tables
@@ -152,6 +153,33 @@ globalThemeStyles =
                     [ borderLeftColor colors.gray3 ]
                 , selector "tr:nth-child(even)"
                     [ backgroundColor (hex "F5F9FE")
+                    ]
+                ]
+            ]
+
+        -- menu
+        , selector ".layout, .menu, .menu-link"
+            [ property "transition" "unset" ]
+        , selector ".pure-menu li a:hover, .pure-menu li a:focus"
+            [ backgroundColor transparent ]
+        , selector ".pure-menu li a:hover"
+            [ backgroundColor colors.gray3 ]
+        , selector ".pure-menu ul"
+            [ property "border-top" "none" ]
+        , selector ".pure-menu-list > .pure-menu-selected"
+            [ backgroundColor (hex "68B8ED") ]
+        , selector ".pure-menu-list > .pure-menu-selected a:hover"
+            [ backgroundColor transparent ]
+        , class "pure-menu-item"
+            [ descendants
+                [ a
+                    [ color colors.gray8
+                    , hover
+                        [ color colors.gray8]
+                    , active
+                        [ color colors.gray8]
+                    , visited
+                        [ color colors.gray8]
                     ]
                 ]
             ]
