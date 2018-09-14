@@ -19,6 +19,8 @@ type Route
     | Root
     | Packages
     | PackageDetails Guid
+    | Users
+    | UserDetails Guid
 
 
 parser : Parser (Route -> a) a
@@ -27,6 +29,8 @@ parser =
         [ Parser.map Home Parser.top
         , Parser.map Packages (s "packages")
         , Parser.map PackageDetails (s "packages" </> Data.Guid.urlParser)
+        , Parser.map Users (s "users")
+        , Parser.map UserDetails (s "users" </> Data.Guid.urlParser)
         ]
 
 
@@ -73,5 +77,11 @@ routeToString page =
 
                 PackageDetails guid ->
                     [ "packages", Data.Guid.toString guid ]
+
+                Users ->
+                    [ "users" ]
+
+                UserDetails guid ->
+                    [ "users", Data.Guid.toString guid ]
     in
     "#/" ++ String.join "/" pieces
