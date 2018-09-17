@@ -1,20 +1,27 @@
 port module Main exposing (main)
 
+import AppContext exposing (AppContext)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import Data.Guid
 import Data.Profile exposing (Profile)
+import Data.User exposing (User, userDecoder)
 import Data.Username exposing (Username)
-import Debug
-import Html exposing (..)
-import Json.Decode as Decode exposing (Value)
+import Debug exposing (log)
+import Html
+import Json.Decode as Decode exposing (Value, decodeValue)
 import Page exposing (Page)
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.PackageDetails as PackageDetails
 import Page.Packages as Packages
+import Page.UserDetails as UserDetails
+import Page.UserSessions as UserSessions
+import Page.Users as Users
 import Route exposing (Route)
 import Session exposing (Session)
 import Task
+import Theme
 import Time
 import Url exposing (Url)
 
@@ -30,17 +37,21 @@ port onTokenUpdated : (String -> msg) -> Sub msg
 
 
 type Model
-    = NotFound Session
-    | Home Session
+    = NotFound NotFound.Model
+    | Home Home.Model
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
+    | UserSessions UserSessions.Model
+    | Users Users.Model
+    | UserDetails UserDetails.Model
 
 
 type alias Flags =
     { token : String
+    , userProfile : Value
     , logoutUrl : String
     , baseUrl : String
-    , profile : Profile
+    , theme : String
     }
 
 
@@ -50,8 +61,34 @@ type alias Flags =
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
+    let
+        userProfile =
+            case decodeValue userDecoder flags.userProfile of
+                Ok profile ->
+                    profile
+
+                Err err ->
+                    User
+                        (Data.Guid.Guid "")
+                        0
+                        (Data.Username.Username "")
+                        False
+                        "Unknown"
+                        "Unknown"
+                        "Unknown"
+                        []
+    in
     changeRouteTo (Route.fromUrl url)
-        (Home (Session navKey flags.token flags.baseUrl flags.profile))
+        (Home
+            (Home.Model
+                (AppContext (Session navKey flags.token)
+                    (Theme.parseTheme flags.theme)
+                    userProfile
+                    flags.logoutUrl
+                    flags.baseUrl
+                )
+            )
+        )
 
 
 
@@ -64,24 +101,33 @@ view model =
         viewPage page toMsg config =
             let
                 { title, body } =
-                    Page.view page config
+                    Page.view page config (toContext model)
             in
             { title = title
             , body = List.map (Html.map toMsg) body
             }
     in
     case model of
-        NotFound _ ->
-            viewPage Page.Other (\_ -> Ignored) NotFound.view
+        NotFound notFoundModel ->
+            viewPage Page.Other (\_ -> Ignored) (NotFound.view notFoundModel)
 
-        Home home ->
-            viewPage Page.Home (\_ -> Ignored) Home.view
+        Home homeModel ->
+            viewPage Page.Home GotHomeMsg (Home.view homeModel)
 
         Packages packages ->
             viewPage Page.Packages GotPackagesMsg (Packages.view packages)
 
         PackageDetails details ->
             viewPage Page.PackageDetails GotPackageDetailsMsg (PackageDetails.view details)
+
+        UserSessions sessions ->
+            viewPage Page.UserSessions GotSessionsMsg (UserSessions.view sessions)
+
+        Users users ->
+            viewPage Page.Users GotUsersMsg (Users.view users)
+
+        UserDetails user ->
+            viewPage Page.UserDetails GotUserDetailsMsg (UserDetails.view user)
 
 
 
@@ -96,47 +142,75 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotPackagesMsg Packages.Msg
     | GotPackageDetailsMsg PackageDetails.Msg
+    | GotSessionsMsg UserSessions.Msg
+    | GotHomeMsg Home.Msg
+    | NotFoundMsg NotFound.Msg
+    | GotUsersMsg Users.Msg
+    | GotUserDetailsMsg UserDetails.Msg
 
 
-toSession : Model -> Session
-toSession page =
+toContext : Model -> AppContext
+toContext page =
     case page of
-        NotFound session ->
-            session
+        NotFound pageModel ->
+            NotFound.toContext pageModel
 
-        Home session ->
-            session
+        Home pageModel ->
+            Home.toContext pageModel
 
-        Packages packages ->
-            Packages.toSession packages
+        Packages pageModel ->
+            Packages.toContext pageModel
 
-        PackageDetails details ->
-            PackageDetails.toSession details
+        PackageDetails pageModel ->
+            PackageDetails.toContext pageModel
+
+        UserSessions pageModel ->
+            UserSessions.toContext pageModel
+
+        Users pageModel ->
+            Users.toContext pageModel
+
+        UserDetails pageModel ->
+            UserDetails.toContext pageModel
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
-        session =
-            toSession model
+        context =
+            toContext model
     in
     case maybeRoute of
         Nothing ->
-            ( NotFound session, Cmd.none )
+            NotFound.init context
+                |> updateWith NotFound NotFoundMsg model
 
         Just Route.Root ->
-            ( model, Route.replaceUrl session.navKey Route.Home )
+            ( model, Route.replaceUrl context.session.navKey Route.Home )
 
         Just Route.Home ->
-            ( Home session, Cmd.none )
+            Home.init context
+                |> updateWith Home GotHomeMsg model
 
         Just Route.Packages ->
-            Packages.init session
+            Packages.init context
                 |> updateWith Packages GotPackagesMsg model
 
         Just (Route.PackageDetails resourceId) ->
-            PackageDetails.init resourceId session
+            PackageDetails.init resourceId context
                 |> updateWith PackageDetails GotPackageDetailsMsg model
+
+        Just Route.UserSessions ->
+            UserSessions.init context
+                |> updateWith UserSessions GotSessionsMsg model
+
+        Just Route.Users ->
+            Users.init context
+                |> updateWith Users GotUsersMsg model
+
+        Just (Route.UserDetails userId) ->
+            UserDetails.init userId context
+                |> updateWith UserDetails GotUserDetailsMsg model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -144,13 +218,13 @@ update msg model =
     case ( msg, model ) of
         ( TokenUpdated token, _ ) ->
             let
-                session =
-                    toSession model
+                context =
+                    toContext model
 
-                updated =
-                    { session | token = token }
+                session =
+                    context.session
             in
-            ( updateSession updated model, Cmd.none )
+            ( updateContext { context | session = { session | token = token } } model, Cmd.none )
 
         ( Ignored, _ ) ->
             ( model, Cmd.none )
@@ -172,7 +246,7 @@ update msg model =
 
                         Just _ ->
                             ( model
-                            , Nav.pushUrl (toSession model).navKey (Url.toString url)
+                            , Nav.pushUrl (toContext model).session.navKey (Url.toString url)
                             )
 
                 Browser.External href ->
@@ -194,6 +268,22 @@ update msg model =
             PackageDetails.update subMsg details
                 |> updateWith PackageDetails GotPackageDetailsMsg model
 
+        ( GotSessionsMsg subMsg, UserSessions userSessions ) ->
+            UserSessions.update subMsg userSessions
+                |> updateWith UserSessions GotSessionsMsg model
+
+        ( GotHomeMsg subMsg, Home homeModel ) ->
+            Home.update subMsg homeModel
+                |> updateWith Home GotHomeMsg model
+
+        ( GotUsersMsg subMsg, Users users ) ->
+            Users.update subMsg users
+                |> updateWith Users GotUsersMsg model
+
+        ( GotUserDetailsMsg subMsg, UserDetails details ) ->
+            UserDetails.update subMsg details
+                |> updateWith UserDetails GotUserDetailsMsg model
+
         ( _, _ ) ->
             -- Disregard messages that arrived for the wrong page.
             ( model, Cmd.none )
@@ -206,20 +296,29 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
     )
 
 
-updateSession : Session -> Model -> Model
-updateSession session model =
+updateContext : AppContext -> Model -> Model
+updateContext context model =
     case model of
-        NotFound _ ->
-            NotFound session
+        NotFound pageModel ->
+            NotFound pageModel
 
-        Home _ ->
-            Home session
+        Home pageModel ->
+            Home { pageModel | context = context }
 
-        Packages courseModel ->
-            Packages { courseModel | session = session }
+        Packages pageModel ->
+            Packages { pageModel | context = context }
 
-        PackageDetails details ->
-            PackageDetails { details | session = session }
+        PackageDetails pageModel ->
+            PackageDetails { pageModel | context = context }
+
+        UserSessions pageModel ->
+            UserSessions { pageModel | context = context }
+
+        Users pageModel ->
+            Users { pageModel | context = context }
+
+        UserDetails pageModel ->
+            UserDetails { pageModel | context = context }
 
 
 
@@ -240,8 +339,17 @@ subscriptions model =
                 PackageDetails details ->
                     [ Sub.map GotPackageDetailsMsg (PackageDetails.subscriptions details) ]
 
+                Users users ->
+                    [ Sub.map GotUsersMsg (Users.subscriptions users) ]
+
+                UserDetails details ->
+                    [ Sub.map GotUserDetailsMsg (UserDetails.subscriptions details) ]
+
                 Home home ->
                     []
+
+                UserSessions sessions ->
+                    [ Sub.map GotSessionsMsg (UserSessions.subscriptions sessions) ]
 
         subs =
             onTokenUpdated TokenUpdated :: fromModel

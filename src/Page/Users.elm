@@ -1,10 +1,10 @@
-module Page.Packages exposing (Model, Msg, init, subscriptions, toContext, update, view)
+module Page.Users exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
 import AppContext exposing (AppContext)
 import Browser.Navigation as Nav
-import Data.Package as Package exposing (Package, retrievePackages)
+import Data.User as User exposing (User, retrieveUsers)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, toUnstyled, ul)
+import Html.Styled exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, ul)
 import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Styled.Events exposing (onInput, onSubmit)
 import Http
@@ -31,7 +31,7 @@ type alias Model =
 type Status
     = Loading
     | LoadingSlowly
-    | Loaded (List Package)
+    | Loaded (List User)
     | Failed Http.Error
 
 
@@ -41,8 +41,8 @@ init context =
       , status = Loading
       }
     , Cmd.batch
-        [ retrievePackages context.session.token context.baseUrl
-            |> Http.send RetrievedPackages
+        [ retrieveUsers context.session.token context.baseUrl
+            |> Http.send RetrievedUsers
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
     )
@@ -52,27 +52,27 @@ init context =
 -- VIEW
 
 
-viewPackages : List Package -> Html Msg
-viewPackages packages =
+viewUsers : List User -> Html Msg
+viewUsers users =
     let
         listItems =
-            List.map (\p -> li [] [ linkTo p.guid p.title ]) packages
+            List.map (\u -> li [] [ linkTo u.id (Username.toString u.username) ]) users
 
-        linkTo guid title =
-            a [ Route.href (Route.PackageDetails guid) ] [ text title ]
+        linkTo userId title =
+            a [ Route.href (Route.UserDetails userId) ] [ text title ]
     in
     ul [] listItems
 
 
 view : Model -> { title : String, content : Html Msg }
 view model =
-    { title = "All Course Packages"
+    { title = "All Course Users"
     , content =
         div [ class "courses-page" ]
             [ globalThemeStyles model.context.theme
             , case model.status of
-                Loaded packages ->
-                    viewPackages packages
+                Loaded users ->
+                    viewUsers users
 
                 Loading ->
                     text ""
@@ -99,19 +99,19 @@ view model =
 
 
 type Msg
-    = RetrievedPackages (Result Http.Error (List Package))
+    = RetrievedUsers (Result Http.Error (List User))
     | PassedSlowLoadThreshold
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RetrievedPackages (Ok packages) ->
-            ( { model | status = Loaded packages }
+        RetrievedUsers (Ok users) ->
+            ( { model | status = Loaded users }
             , Cmd.none
             )
 
-        RetrievedPackages (Err err) ->
+        RetrievedUsers (Err err) ->
             ( { model | status = Failed err }
             , Cmd.none
             )

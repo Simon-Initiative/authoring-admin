@@ -4,7 +4,7 @@ import Data.Guid exposing (Guid, decoder)
 import Data.ResourceId exposing (ResourceId, decoder)
 import Html exposing (..)
 import Http
-import Json.Decode exposing (Decoder, fail, float, int, list, nullable, string, succeed)
+import Json.Decode exposing (Decoder, fail, float, int, list, nullable, string, succeed, bool)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 
 
@@ -20,6 +20,8 @@ type alias Package =
     , version : String
     , title : String
     , description : String
+    , visible : Bool
+    , editable : Bool
     , buildStatus : BuildStatus
     }
 
@@ -87,4 +89,6 @@ packageDecoder =
         |> required "version" string
         |> required "title" string
         |> required "description" string
+        |> required "visible" bool
+        |> required "editable" bool
         |> required "buildStatus" buildStatusDecoder

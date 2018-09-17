@@ -1,7 +1,6 @@
 module Session exposing (Session)
 
 import Browser.Navigation as Nav
-import Data.Profile exposing (Profile)
 
 
 
@@ -11,6 +10,4 @@ import Data.Profile exposing (Profile)
 type alias Session =
     { navKey : Nav.Key
     , token : String
-    , baseUrl : String
-    , profile : Profile
     }

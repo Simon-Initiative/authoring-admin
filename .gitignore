@@ -6,3 +6,6 @@ node_modules
 elm.js
 dist/
 optimized.js
+.idea
+.DS_Store
+.vscode

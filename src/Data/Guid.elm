@@ -1,4 +1,4 @@
-module Data.Guid exposing (Guid, decoder, encode, toGuid, toHtml, toString, urlParser)
+module Data.Guid exposing (..)
 
 import Html exposing (Html)
 import Json.Decode as Decode exposing (Decoder)

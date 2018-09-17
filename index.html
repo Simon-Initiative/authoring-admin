@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" 
     integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
   <link rel="stylesheet" href="assets/css/layouts/side-menu.css">
+  <link rel="stylesheet" href="assets/icons/icomoon/style.css">
 </head>
 
 <body>
@@ -24,14 +25,20 @@
 
   var onLoginSuccess = function(token, profile, logoutUrl, managementUrl) {
 
-    console.log(profile);
+    var storedTheme = localStorage.getItem('theme');
+    var theme = storedTheme ? JSON.parse(storedTheme) : '';
 
     app = Elm.Main.init({ flags: {
       token: token,
+      userProfile: profile,
       logoutUrl: logoutUrl,
       baseUrl: location.protocol + '//' + location.hostname,
-      profile
+      theme: theme,
     }});
+
+    app.ports.setStorage.subscribe(function(state) {
+        localStorage.setItem('theme', JSON.stringify(state));
+    });
   };
 
   var onLoginFailure = function(err) {

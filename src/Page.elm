@@ -1,13 +1,16 @@
 module Page exposing (Page(..), view)
 
 import Browser exposing (Document)
-import Debug
 import Html exposing (Html, a, button, div, footer, h3, i, img, li, nav, p, span, text, ul)
-import Html.Attributes exposing (class, classList, href, id, style)
-import Html.Events exposing (onClick)
+import Html.Styled exposing (Html, toUnstyled, a, button, div, footer, h3, i, img, li, nav, p, span, text, ul)
+import Html.Styled.Attributes exposing (class, classList, href, id, style)
+import Html.Styled.Events exposing (onClick)
 import Route exposing (Route, routeToString)
 import Session exposing (Session)
-
+import Theme exposing (getTheme, tcss)
+import Css exposing (..)
+import AppContext exposing (AppContext)
+import Html.Attributes
 
 {-| Determines which navbar link (if any) will be rendered as active.
 
@@ -21,6 +24,9 @@ type Page
     | Home
     | Packages
     | PackageDetails
+    | UserSessions
+    | Users
+    | UserDetails
 
 
 {-| Take a page's Html and frames it with a header and footer.
@@ -32,18 +38,20 @@ isLoading is for determining whether we should show a loading spinner
 in the header. (This comes up during slow page transitions.)
 
 -}
-view : Page -> { title : String, content : Html msg } -> Document msg
-view page { title, content } =
+view : Page -> { title : String, content : Html msg } -> AppContext -> Document msg
+view page { title, content } context =
     let
         body =
-            div [ class "layout" ]
-                [ viewMenuToggle
-                , viewMenu page
-                , div [ class "main" ]
-                    [ div [ class "header" ] [ h3 [] [ text title ] ]
-                    , div [ class "content" ] [ content ]
+            toUnstyled (
+                div [ class "layout" ]
+                    [ viewMenuToggle
+                    , viewMenu page context
+                    , div [ class "main" ]
+                        [ div [ class "header" ] [ h3 [] [ text title ] ]
+                        , div [ class "content" ] [ content ]
+                        ]
                     ]
-                ]
+            )
     in
     { title = title ++ " - Admin"
     , body = [ body ]
@@ -54,29 +62,61 @@ viewMenuToggle : Html msg
 viewMenuToggle =
     a [ href "#menu", class "menuLink", class "menu-link" ] [ span [] [] ]
 
+menuStyle themeType theme =
+    [ displayFlex
+    , flexDirection column
+    , case themeType of
+            Theme.Light ->
+                Css.batch [ backgroundColor theme.colors.gray7
+                , displayFlex
+                , flexDirection column
+                ]
+            Theme.Dark ->
+                Css.batch [ backgroundColor theme.colors.gray2
+                , displayFlex
+                , flexDirection column
+                ]
+    ]
 
-viewMenu : Page -> Html msg
-viewMenu page =
+pureMenuStyle themeType theme =
+    [ flex (int 1) ]
+
+logoutButtonStyle themeType theme =
+    [ height (px 30)
+    , margin (px 10)
+    ]
+
+viewMenu : Page -> AppContext -> Html msg
+viewMenu page context =
     let
         linkTo =
-            navbarLink page
+            navbarLink page context.theme
     in
-    div [ class "menu " ]
-        [ div [ class "pure-menu" ]
+    div [ class "menu ", tcss context.theme menuStyle]
+        [ div [ class "pure-menu", tcss context.theme pureMenuStyle ]
             [ a [ class "pure-menu-heading", href "#" ] [ text "Admin " ]
             , ul [ class "pure-menu-list " ]
                 [ linkTo Route.Home [ text "Home" ]
                 , linkTo Route.Packages [ text "Packages" ]
+                , linkTo Route.UserSessions [ text "Sessions" ]
+                , linkTo Route.Users [ text "Users "]
                 ]
             ]
+        -- , button [ class "button-secondary", tcss context.theme logoutButtonStyle, redirectTo context.logoutUrl ]
+        --     [ text "Logout" ]
         ]
 
 
-navbarLink : Page -> Route -> List (Html msg) -> Html msg
-navbarLink page route linkContent =
+navbarLink : Page -> Theme.Theme -> Route -> List (Html msg) -> Html msg
+navbarLink page theme route linkContent =
     li [ classList [ ( "pure-menu-item", True ), ( "pure-menu-selected", isActive page route ) ] ]
         [ a [ class "pure-menu-link", Route.href route ] linkContent ]
 
+-- redirectTo : String -> Html.Styled.Attribute msg
+-- redirectTo destinationUrl =
+--   Html.Styled.Attributes.attribute 
+--     "onclick" 
+--     ("window.location.href = '" ++ destinationUrl ++ "'")
 
 isActive : Page -> Route -> Bool
 isActive page route =
@@ -88,6 +128,15 @@ isActive page route =
             True
 
         ( PackageDetails, Route.Packages ) ->
+            True
+
+        ( UserSessions, Route.UserSessions ) ->
+            True
+            
+        ( Users, Route.Users ) ->
+            True
+
+        ( UserDetails, Route.Users ) ->
             True
 
         _ ->
