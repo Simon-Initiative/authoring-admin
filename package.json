@@ -6,7 +6,6 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "sh dist.sh",
     "serve": "elm-live src/Main.elm --port=7000 --open --pushstate --host=dev.local --debug -- --output=elm.js"
   },
   "author": "",
