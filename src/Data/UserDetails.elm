@@ -40,7 +40,7 @@ resetPassword userId token baseUrl =
         }
 
 
-retrieveUserDetails userId token =
+retrieveUserDetails userId token baseUrl =
     let
         headers =
             [ Http.header
@@ -57,7 +57,7 @@ retrieveUserDetails userId token =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/users/" ++ Data.Guid.toString userId
+            baseUrl ++ "/auth/admin/realms/oli_security/users/" ++ Data.Guid.toString userId
     in
     Http.request
         { method = "GET"

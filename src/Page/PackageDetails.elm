@@ -172,7 +172,7 @@ update msg model =
             in
             ( { model | status = Loaded { details | visible = viz } }
             , Cmd.batch
-                [ setPackageVisible details.guid viz (toContext model).session.token
+                [ setPackageVisible details.guid viz (toContext model).session.token (toContext model).baseUrl
                     |> Http.send PkgVisibleDetails
                 ]
             )
@@ -184,7 +184,7 @@ update msg model =
             in
             ( { model | status = Loaded { details | editable = loc } }
             , Cmd.batch
-                [ setPackageEditable details.guid loc (toContext model).session.token
+                [ setPackageEditable details.guid loc (toContext model).session.token (toContext model).baseUrl
                     |> Http.send PkgEditableDetails
                 ]
             )
