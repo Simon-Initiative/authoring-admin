@@ -21,3 +21,7 @@ USER root
 COPY package.json /app
 RUN npm install
 
+COPY dist.sh /app
+RUN chmod +x /app/dist.sh
+
+CMD ["/app/dist.sh"]
