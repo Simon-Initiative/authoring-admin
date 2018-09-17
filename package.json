@@ -9,8 +9,5 @@
     "serve": "elm-live src/Main.elm --port=7000 --open --pushstate --host=dev.local --debug -- --output=elm.js"
   },
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "elm": "^0.19.0-bugfix2"
-  }
+  "license": "ISC"
 }

@@ -38,7 +38,7 @@ type PackageRole
     | Contributor
 
 
-retrieveUsers token =
+retrieveUsers token baseUrl =
     let
         headers =
             [ Http.header
@@ -55,7 +55,7 @@ retrieveUsers token =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/users"
+            baseUrl ++ "/auth/admin/realms/oli_security/users"
     in
     Http.request
         { method = "GET"

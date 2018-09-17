@@ -20,7 +20,7 @@ type alias PackageDetails =
     }
 
 
-retrievePackageDetails courseId token =
+retrievePackageDetails courseId token baseUrl =
     let
         headers =
             [ Http.header
@@ -37,7 +37,7 @@ retrievePackageDetails courseId token =
             ]
 
         url =
-            "http://dev.local/content-service/api/v1/packages/" ++ Data.Guid.toString courseId ++ "/details"
+            baseUrl ++ "/content-service/api/v1/packages/" ++ Data.Guid.toString courseId ++ "/details"
     in
     Http.request
         { method = "GET"

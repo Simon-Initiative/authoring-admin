@@ -1,8 +1,10 @@
 module AppContext exposing (AppContext)
 
+import Data.User exposing (User)
 import Session exposing (Session)
 import Theme exposing (Theme)
-import Data.User exposing (User)
+
+
 
 -- TYPES
 
@@ -12,4 +14,5 @@ type alias AppContext =
     , theme : Theme
     , userProfile : User
     , logoutUrl : String
+    , baseUrl : String
     }

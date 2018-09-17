@@ -1,8 +1,13 @@
 port module Main exposing (main)
 
+import AppContext exposing (AppContext)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import Data.Guid
+import Data.Profile exposing (Profile)
+import Data.User exposing (User, userDecoder)
 import Data.Username exposing (Username)
+import Debug exposing (log)
 import Html
 import Json.Decode as Decode exposing (Value, decodeValue)
 import Page exposing (Page)
@@ -10,28 +15,26 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.PackageDetails as PackageDetails
 import Page.Packages as Packages
-import Page.UserSessions as UserSessions
 import Page.UserDetails as UserDetails
+import Page.UserSessions as UserSessions
 import Page.Users as Users
 import Route exposing (Route)
 import Session exposing (Session)
 import Task
+import Theme
 import Time
 import Url exposing (Url)
-import AppContext exposing (AppContext)
-import Theme
-import Data.User exposing (User, userDecoder)
-import Data.Guid
-import Data.Username
-import Debug exposing (log)
+
 
 port onTokenUpdated : (String -> msg) -> Sub msg
+
 
 
 -- WARNING: Based on discussions around how asset management features
 -- like code splitting and lazy loading have been shaping up, I expect
 -- most of this file to become unnecessary in a future release of Elm.
 -- Avoid putting things in here unless there is no alternative!
+
 
 type Model
     = NotFound NotFound.Model
@@ -47,6 +50,7 @@ type alias Flags =
     { token : String
     , userProfile : Value
     , logoutUrl : String
+    , baseUrl : String
     , theme : String
     }
 
@@ -62,8 +66,9 @@ init flags url navKey =
             case decodeValue userDecoder flags.userProfile of
                 Ok profile ->
                     profile
+
                 Err err ->
-                    (User
+                    User
                         (Data.Guid.Guid "")
                         0
                         (Data.Username.Username "")
@@ -72,16 +77,18 @@ init flags url navKey =
                         "Unknown"
                         "Unknown"
                         []
-                    )
     in
     changeRouteTo (Route.fromUrl url)
-        (Home (
-            Home.Model
-            (AppContext (Session navKey flags.token)
-            (Theme.parseTheme flags.theme)
-            ( userProfile )
-            flags.logoutUrl )
-        ))
+        (Home
+            (Home.Model
+                (AppContext (Session navKey flags.token)
+                    (Theme.parseTheme flags.theme)
+                    userProfile
+                    flags.logoutUrl
+                    flags.baseUrl
+                )
+            )
+        )
 
 
 
@@ -115,6 +122,7 @@ view model =
 
         UserSessions sessions ->
             viewPage Page.UserSessions GotSessionsMsg (UserSessions.view sessions)
+
         Users users ->
             viewPage Page.Users GotUsersMsg (Users.view users)
 
@@ -158,6 +166,7 @@ toContext page =
 
         UserSessions pageModel ->
             UserSessions.toContext pageModel
+
         Users pageModel ->
             Users.toContext pageModel
 
@@ -195,7 +204,7 @@ changeRouteTo maybeRoute model =
             UserSessions.init context
                 |> updateWith UserSessions GotSessionsMsg model
 
-        Just Route.Users -> 
+        Just Route.Users ->
             Users.init context
                 |> updateWith Users GotUsersMsg model
 
@@ -211,7 +220,9 @@ update msg model =
             let
                 context =
                     toContext model
-                session = context.session
+
+                session =
+                    context.session
             in
             ( updateContext { context | session = { session | token = token } } model, Cmd.none )
 
@@ -260,10 +271,11 @@ update msg model =
         ( GotSessionsMsg subMsg, UserSessions userSessions ) ->
             UserSessions.update subMsg userSessions
                 |> updateWith UserSessions GotSessionsMsg model
-         
-        ( GotHomeMsg subMsg, Home homeModel) ->
+
+        ( GotHomeMsg subMsg, Home homeModel ) ->
             Home.update subMsg homeModel
                 |> updateWith Home GotHomeMsg model
+
         ( GotUsersMsg subMsg, Users users ) ->
             Users.update subMsg users
                 |> updateWith Users GotUsersMsg model
@@ -283,6 +295,7 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
     , Cmd.map toMsg subCmd
     )
 
+
 updateContext : AppContext -> Model -> Model
 updateContext context model =
     case model of
@@ -300,7 +313,7 @@ updateContext context model =
 
         UserSessions pageModel ->
             UserSessions { pageModel | context = context }
-            
+
         Users pageModel ->
             Users { pageModel | context = context }
 
@@ -326,7 +339,7 @@ subscriptions model =
                 PackageDetails details ->
                     [ Sub.map GotPackageDetailsMsg (PackageDetails.subscriptions details) ]
 
-                Users users -> 
+                Users users ->
                     [ Sub.map GotUsersMsg (Users.subscriptions users) ]
 
                 UserDetails details ->

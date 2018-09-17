@@ -2,10 +2,10 @@ module Data.SessionClient exposing (SessionClient, retrieveSessionClients)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.ResourceId exposing (ResourceId, decoder)
+import Dict exposing (Dict)
 import Html exposing (..)
 import Http
-import Dict exposing (Dict)
-import Json.Decode exposing (Decoder, fail, float, int, list, nullable, string, dict, succeed)
+import Json.Decode exposing (Decoder, dict, fail, float, int, list, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 
 
@@ -16,7 +16,7 @@ type alias SessionClient =
     }
 
 
-retrieveSessionClients token =
+retrieveSessionClients token baseUrl =
     let
         headers =
             [ Http.header
@@ -33,7 +33,7 @@ retrieveSessionClients token =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/client-session-stats"
+            baseUrl ++ "/auth/admin/realms/oli_security/client-session-stats"
     in
     Http.request
         { method = "GET"

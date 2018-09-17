@@ -1,15 +1,16 @@
-module Data.UserDetails exposing (retrieveUserDetails, resetPassword)
+module Data.UserDetails exposing (resetPassword, retrieveUserDetails)
 
-import Data.User exposing (User, userDecoder)
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
 import Data.ResourceId exposing (ResourceId, decoder, toString)
+import Data.User exposing (User, userDecoder)
 import Html exposing (..)
 import Http
 import Json.Decode exposing (Decoder, fail, float, int, list, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 
-resetPassword userId token =
+
+resetPassword userId token baseUrl =
     let
         headers =
             [ Http.header
@@ -26,7 +27,7 @@ resetPassword userId token =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/users/" ++ Data.Guid.toString userId ++ "/reset-password"
+            baseUrl ++ "/auth/admin/realms/oli_security/users/" ++ Data.Guid.toString userId ++ "/reset-password"
     in
     Http.request
         { method = "PUT"

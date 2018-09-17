@@ -1,25 +1,26 @@
 module Page.UserSessions exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
+import AppContext exposing (AppContext)
 import Browser.Navigation as Nav
-import Data.SessionClient exposing (SessionClient, retrieveSessionClients)
-import Data.UserSession exposing (UserSession, retrieveUserSessions, logoutAllUsers, logoutUser)
 import Css exposing (..)
+import Data.SessionClient exposing (SessionClient, retrieveSessionClients)
+import Data.UserSession exposing (UserSession, logoutAllUsers, logoutUser, retrieveUserSessions)
+import Html.Styled exposing (Html, a, button, div, fieldset, h1, i, input, li, table, tbody, td, text, textarea, th, thead, toUnstyled, tr, ul)
+import Html.Styled.Attributes exposing (attribute, class, css, placeholder, type_, value)
+import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)
 import Json.Encode as Encode
+import List.Extra
 import Loading
 import Log
 import Route
-import AppContext exposing (AppContext)
 import Task
-import List.Extra
-import Time exposing (..)
-import Css exposing (..)
-import Html.Styled exposing (Html, toUnstyled, a, button, div, fieldset, h1, input, li, text, textarea, ul, table, thead, tbody, tr, th, td, i)
-import Html.Styled.Attributes exposing (css, attribute, class, placeholder, type_, value)
-import Html.Styled.Events exposing (onInput, onSubmit, onClick)
 import Theme exposing (globalThemeStyles)
+import Time exposing (..)
+
+
 
 -- MODEL
 
@@ -43,7 +44,7 @@ init context =
       , status = Loading
       }
     , Cmd.batch
-        [ retrieveSessionClients context.session.token
+        [ retrieveSessionClients context.session.token context.baseUrl
             |> Http.send RetrievedClientSessions
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -53,69 +54,121 @@ init context =
 
 -- VIEW
 
+
 toUSMonth : Month -> String
 toUSMonth month =
     case month of
-        Jan -> "January"
-        Feb -> "February"
-        Mar -> "March"
-        Apr -> "April"
-        May -> "May"
-        Jun -> "June"
-        Jul -> "July"
-        Aug -> "August"
-        Sep -> "September"
-        Oct -> "October"
-        Nov -> "November"
-        Dec -> "December"
+        Jan ->
+            "January"
+
+        Feb ->
+            "February"
+
+        Mar ->
+            "March"
+
+        Apr ->
+            "April"
+
+        May ->
+            "May"
+
+        Jun ->
+            "June"
+
+        Jul ->
+            "July"
+
+        Aug ->
+            "August"
+
+        Sep ->
+            "September"
+
+        Oct ->
+            "October"
+
+        Nov ->
+            "November"
+
+        Dec ->
+            "December"
+
 
 toStandardHours : Int -> String
 toStandardHours hours =
     if hours > 0 && hours <= 12 then
         String.fromInt hours
+
     else if hours > 12 then
         String.fromInt (hours - 12)
+
     else
         String.fromInt hours
+
 
 toStandardMinutes : Int -> String
 toStandardMinutes minutes =
     if minutes < 10 then
         "0" ++ String.fromInt minutes
+
     else
         String.fromInt minutes
 
+
 formatTime time =
     let
-        date = Time.millisToPosix time
-        hour = toStandardHours (Time.toHour Time.utc date)
-        minutes = toStandardMinutes (Time.toMinute Time.utc date)
-        ampm = case ((Time.toHour Time.utc date) < 12) of
-            True -> "AM"
-            False -> "PM"
-                
+        date =
+            Time.millisToPosix time
+
+        hour =
+            toStandardHours (Time.toHour Time.utc date)
+
+        minutes =
+            toStandardMinutes (Time.toMinute Time.utc date)
+
+        ampm =
+            case Time.toHour Time.utc date < 12 of
+                True ->
+                    "AM"
+
+                False ->
+                    "PM"
     in
-    (toUSMonth(Time.toMonth Time.utc date)) ++ " " ++ String.fromInt (Time.toDay Time.utc date) ++ ", "
-        ++ String.fromInt (Time.toYear Time.utc date) ++ " at " ++ hour
-        ++ ":" ++ minutes ++ " " ++ ampm
+    toUSMonth (Time.toMonth Time.utc date)
+        ++ " "
+        ++ String.fromInt (Time.toDay Time.utc date)
+        ++ ", "
+        ++ String.fromInt (Time.toYear Time.utc date)
+        ++ " at "
+        ++ hour
+        ++ ":"
+        ++ minutes
+        ++ " "
+        ++ ampm
+
 
 viewSessions : List UserSession -> Html Msg
 viewSessions userSessions =
     let
         rows =
-            List.map (\s -> tr []
-                [ td [] [ text s.username ]
-                , td [] [ text s.ipAddress ]
-                , td [] [ text (formatTime s.start) ]
-                , td [] [ text (formatTime s.lastAccess) ]
-                , td []
-                    [ button [ class "pure-button", onClick (LogoutUser s.userId) ]
-                        [ text "Logout" ]
-                    ]
-                ]) userSessions
+            List.map
+                (\s ->
+                    tr []
+                        [ td [] [ text s.username ]
+                        , td [] [ text s.ipAddress ]
+                        , td [] [ text (formatTime s.start) ]
+                        , td [] [ text (formatTime s.lastAccess) ]
+                        , td []
+                            [ button [ class "pure-button", onClick (LogoutUser s.userId) ]
+                                [ text "Logout" ]
+                            ]
+                        ]
+                )
+                userSessions
     in
     table [ class "pure-table" ]
-        [ thead [] 
+        [ thead []
             [ tr []
                 [ th [] [ text "Username" ]
                 , th [] [ text "IP Address" ]
@@ -131,7 +184,7 @@ viewSessions userSessions =
 view : Model -> { title : String, content : Html Msg }
 view model =
     let
-        toolbarStyle = 
+        toolbarStyle =
             [ displayFlex
             , flexDirection row
             , margin2 (px 20) (px 0)
@@ -140,7 +193,7 @@ view model =
     { title = "Active User Sessions"
     , content =
         div [ class "user-sessions-page" ]
-            [ globalThemeStyles(model.context.theme)
+            [ globalThemeStyles model.context.theme
             , div
                 [ css toolbarStyle ]
                 [ div [ css [ flex (int 1) ] ] []
@@ -199,7 +252,7 @@ type Msg
     | PassedSlowLoadThreshold
     | LogoutAllUsers
     | CompletedLogoutAllUsers (Result Http.Error ())
-    | LogoutUser (String)
+    | LogoutUser String
     | CompletedLogoutUser (Result Http.Error ())
     | RefreshSessions
 
@@ -209,14 +262,15 @@ update msg model =
     case msg of
         RetrievedClientSessions (Ok sessionClients) ->
             let
-                maybeAccountClient = List.Extra.find (\c -> c.clientId == "account") sessionClients
+                maybeAccountClient =
+                    List.Extra.find (\c -> c.clientId == "account") sessionClients
             in
             ( model
             , case maybeAccountClient of
-                Just (accountClient) ->
-                    retrieveUserSessions (toContext model).session.token accountClient.id
+                Just accountClient ->
+                    retrieveUserSessions (toContext model).session.token accountClient.id (toContext model).baseUrl
                         |> Http.send RetrievedUserSessions
-            
+
                 Nothing ->
                     Cmd.none
             )
@@ -245,34 +299,33 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
-        
+
         LogoutAllUsers ->
             ( model
-            , logoutAllUsers (toContext model).session.token
+            , logoutAllUsers (toContext model).session.token (toContext model).baseUrl
                 |> Http.send CompletedLogoutAllUsers
             )
-        
+
         CompletedLogoutAllUsers (Ok _) ->
-            ( model, Route.replaceUrl (toContext model).session.navKey Route.Home)
-        
+            ( model, Route.replaceUrl (toContext model).session.navKey Route.Home )
+
         CompletedLogoutAllUsers (Err err) ->
             init (toContext model)
-        
+
         LogoutUser userId ->
             ( model
-            , logoutUser (toContext model).session.token userId
+            , logoutUser (toContext model).session.token userId (toContext model).baseUrl
                 |> Http.send CompletedLogoutUser
             )
-        
+
         CompletedLogoutUser (Ok _) ->
             init (toContext model)
-        
+
         CompletedLogoutUser (Err err) ->
             init (toContext model)
 
         RefreshSessions ->
             init (toContext model)
-            
 
 
 
@@ -286,6 +339,7 @@ subscriptions model =
 
 
 -- EXPORT
+
 
 toContext : Model -> AppContext
 toContext model =

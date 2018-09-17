@@ -1,12 +1,13 @@
-module Data.UserSession exposing (UserSession, retrieveUserSessions, logoutUser, logoutAllUsers)
+module Data.UserSession exposing (UserSession, logoutAllUsers, logoutUser, retrieveUserSessions)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.ResourceId exposing (ResourceId, decoder)
+import Dict exposing (Dict)
 import Html exposing (..)
 import Http
-import Dict exposing (Dict)
-import Json.Decode exposing (Decoder, fail, float, int, list, nullable, string, dict, succeed)
+import Json.Decode exposing (Decoder, dict, fail, float, int, list, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+
 
 type alias UserSession =
     { id : String
@@ -18,7 +19,8 @@ type alias UserSession =
     , clients : Dict String String
     }
 
-retrieveUserSessions token clientId =
+
+retrieveUserSessions token clientId baseUrl =
     let
         headers =
             [ Http.header
@@ -35,7 +37,7 @@ retrieveUserSessions token clientId =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/clients/" ++ clientId ++ "/user-sessions"
+            baseUrl ++ "/auth/admin/realms/oli_security/clients/" ++ clientId ++ "/user-sessions"
     in
     Http.request
         { method = "GET"
@@ -47,7 +49,8 @@ retrieveUserSessions token clientId =
         , withCredentials = False
         }
 
-logoutUser token userId =
+
+logoutUser token userId baseUrl =
     let
         headers =
             [ Http.header
@@ -64,7 +67,7 @@ logoutUser token userId =
             ]
 
         url =
-            "http://dev.local/auth/admin/realms/oli_security/users/" ++ userId ++ "/logout"
+            baseUrl ++ "/auth/admin/realms/oli_security/users/" ++ userId ++ "/logout"
     in
     Http.request
         { method = "POST"
@@ -76,7 +79,8 @@ logoutUser token userId =
         , withCredentials = False
         }
 
-logoutAllUsers token =
+
+logoutAllUsers token baseUrl =
     let
         headers =
             [ Http.header
@@ -92,7 +96,8 @@ logoutAllUsers token =
                 )
             ]
 
-        url = "http://dev.local/auth/admin/realms/oli_security/logout-all"
+        url =
+            baseUrl ++ "/auth/admin/realms/oli_security/logout-all"
     in
     Http.request
         { method = "POST"
@@ -103,6 +108,7 @@ logoutAllUsers token =
         , timeout = Nothing
         , withCredentials = False
         }
+
 
 sessionsDecoder : Decoder (List UserSession)
 sessionsDecoder =

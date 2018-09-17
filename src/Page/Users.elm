@@ -1,5 +1,6 @@
 module Page.Users exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
+import AppContext exposing (AppContext)
 import Browser.Navigation as Nav
 import Data.User as User exposing (User, retrieveUsers)
 import Data.Username as Username exposing (Username)
@@ -13,7 +14,6 @@ import Json.Encode as Encode
 import Loading
 import Log
 import Route
-import AppContext exposing (AppContext)
 import Task
 import Theme exposing (globalThemeStyles)
 
@@ -41,7 +41,7 @@ init context =
       , status = Loading
       }
     , Cmd.batch
-        [ retrieveUsers context.session.token
+        [ retrieveUsers context.session.token context.baseUrl
             |> Http.send RetrievedUsers
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -69,7 +69,7 @@ view model =
     { title = "All Course Users"
     , content =
         div [ class "courses-page" ]
-            [ globalThemeStyles(model.context.theme)
+            [ globalThemeStyles model.context.theme
             , case model.status of
                 Loaded users ->
                     viewUsers users

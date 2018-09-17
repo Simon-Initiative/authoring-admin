@@ -1,9 +1,10 @@
 module Page.Packages exposing (Model, Msg, init, subscriptions, toContext, update, view)
 
+import AppContext exposing (AppContext)
 import Browser.Navigation as Nav
 import Data.Package as Package exposing (Package, retrievePackages)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, toUnstyled, a, button, div, fieldset, h1, input, li, text, textarea, ul)
+import Html.Styled exposing (Html, a, button, div, fieldset, h1, input, li, text, textarea, toUnstyled, ul)
 import Html.Styled.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Styled.Events exposing (onInput, onSubmit)
 import Http
@@ -13,9 +14,9 @@ import Json.Encode as Encode
 import Loading
 import Log
 import Route
-import AppContext exposing (AppContext)
 import Task
 import Theme exposing (globalThemeStyles)
+
 
 
 -- MODEL
@@ -40,7 +41,7 @@ init context =
       , status = Loading
       }
     , Cmd.batch
-        [ retrievePackages context.session.token
+        [ retrievePackages context.session.token context.baseUrl
             |> Http.send RetrievedPackages
         , Task.perform (\_ -> PassedSlowLoadThreshold) Loading.slowThreshold
         ]
@@ -68,7 +69,7 @@ view model =
     { title = "All Course Packages"
     , content =
         div [ class "courses-page" ]
-            [ globalThemeStyles(model.context.theme)
+            [ globalThemeStyles model.context.theme
             , case model.status of
                 Loaded packages ->
                     viewPackages packages
@@ -137,6 +138,7 @@ subscriptions model =
 
 
 -- EXPORT
+
 
 toContext : Model -> AppContext
 toContext model =
