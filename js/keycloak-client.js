@@ -1,7 +1,7 @@
 window.keycloakClient = {};
 
 const keycloakConfig = {
-  url: 'http://dev.local/auth',
+  url: location.protocol + '//' + location.hostname + '/auth',
   realm: 'oli_security',
   clientId: 'admin_client',
 };
