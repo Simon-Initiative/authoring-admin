@@ -26,7 +26,7 @@ loading =
 
 image : String -> Image
 image filename =
-    Image ("/assets/images/" ++ filename)
+    Image ("/admin/assets/images/" ++ filename)
 
 
 

@@ -152,7 +152,7 @@ globalThemeStyles =
                     ]
                     [ borderLeftColor colors.gray3 ]
                 , selector "tr:nth-child(even)"
-                    [ backgroundColor (hex "F5F9FE")
+                    [ backgroundColor (hex "333")
                     ]
                 ]
             ]
