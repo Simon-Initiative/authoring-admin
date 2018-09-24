@@ -16,6 +16,7 @@
         messageStyle: "none",
         processSectionDelay: 0,
         processUpdateTime: 0,
+        showProcessingMessages: false,
         "fast-preview": {disabled: true},
         TeX: { equationNumbers: {autoNumber: "AMS"}, 
              noErrors: {disabled: true},
@@ -54,6 +55,10 @@
       var toTypeset = typesetQueue
       MathJax.Hub.Queue(["resetEquationNumbers", MathJax.InputJax.TeX]);
       MathJax.Hub.Queue(['Typeset', MathJax.Hub, typesetQueue], function (arg) {
+        var msg = document.getElementById('MathJax_Message');
+        if (msg !== null) {
+          msg.parentElement.removeChild(msg);
+        }
         toTypeset.forEach(function (el) { el.style.opacity = 1 })
       })
       typesetQueue = []
@@ -66,7 +71,12 @@
     updateQueue.push(el)
     clearTimeout(updateTimeout)
     updateTimeout = setTimeout(function () {
-      MathJax.Hub.Queue(['Update', MathJax.Hub, updateQueue])
+      MathJax.Hub.Queue(['Update', MathJax.Hub, updateQueue], function(arg) {
+        var msg = document.getElementById('MathJax_Message');
+        if (msg !== null) {
+          msg.parentElement.removeChild(msg);
+        }
+      });
       updateQueue = []
     }, 0)
   }
@@ -87,15 +97,18 @@
 				var jaxScript = this.querySelector('script')
 				if (!jaxScript) return
 				jaxScript.textContent = this._content
-				enqueueUpdate(this)
+				
+        enqueueUpdate(this)
 			}
 		
 			connectedCallback() {
 				this.textContent = this._content
 				this._connected = true
-				this.style.opacity = 1
+				this.style.opacity = 0
 				this.style.display = 'inline'
-				enqueueTypeset(this)
+
+        
+			  enqueueTypeset(this)
 			}
 		})
 
