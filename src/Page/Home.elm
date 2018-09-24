@@ -7,6 +7,7 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (..)
 import Json.Decode as Json
+import Json.Encode exposing (encode, string)
 import Theme exposing (getTheme, globalThemeStyles, parseTheme)
 
 
@@ -35,9 +36,6 @@ init context =
 view : Model -> { title : String, content : Html Msg }
 view model =
     let
-        formula =
-            "\\binom{n}{k} = \\frac{n!}{k!(n-k)!}"
-
         isSelected val =
             case model.context.theme of
                 Theme.Light ->
@@ -62,8 +60,6 @@ view model =
                         ]
                     ]
                 ]
-            , div []
-                [ p [] [ text ("This is inline Latex: $" ++ formula ++ "$ ") ] ]
             ]
     }
 

@@ -15,6 +15,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.PackageDetails as PackageDetails
 import Page.Packages as Packages
+import Page.TestBed as TestBed
 import Page.UserDetails as UserDetails
 import Page.UserSessions as UserSessions
 import Page.Users as Users
@@ -39,6 +40,7 @@ port onTokenUpdated : (String -> msg) -> Sub msg
 type Model
     = NotFound NotFound.Model
     | Home Home.Model
+    | TestBed TestBed.Model
     | Packages Packages.Model
     | PackageDetails PackageDetails.Model
     | UserSessions UserSessions.Model
@@ -108,6 +110,9 @@ view model =
             }
     in
     case model of
+        TestBed testBed ->
+            viewPage Page.TestBed (\_ -> Ignored) (TestBed.view testBed)
+
         NotFound notFoundModel ->
             viewPage Page.Other (\_ -> Ignored) (NotFound.view notFoundModel)
 
@@ -144,6 +149,7 @@ type Msg
     | GotPackageDetailsMsg PackageDetails.Msg
     | GotSessionsMsg UserSessions.Msg
     | GotHomeMsg Home.Msg
+    | TestBedMsg TestBed.Msg
     | NotFoundMsg NotFound.Msg
     | GotUsersMsg Users.Msg
     | GotUserDetailsMsg UserDetails.Msg
@@ -154,6 +160,9 @@ toContext page =
     case page of
         NotFound pageModel ->
             NotFound.toContext pageModel
+
+        TestBed pageModel ->
+            TestBed.toContext pageModel
 
         Home pageModel ->
             Home.toContext pageModel
@@ -191,6 +200,10 @@ changeRouteTo maybeRoute model =
         Just Route.Home ->
             Home.init context
                 |> updateWith Home GotHomeMsg model
+
+        Just Route.TestBed ->
+            TestBed.init context
+                |> updateWith TestBed TestBedMsg model
 
         Just Route.Packages ->
             Packages.init context
@@ -302,6 +315,9 @@ updateContext context model =
         NotFound pageModel ->
             NotFound pageModel
 
+        TestBed pageModel ->
+            TestBed pageModel
+
         Home pageModel ->
             Home { pageModel | context = context }
 
@@ -331,6 +347,9 @@ subscriptions model =
         fromModel =
             case model of
                 NotFound _ ->
+                    []
+
+                TestBed _ ->
                     []
 
                 Packages packages ->
