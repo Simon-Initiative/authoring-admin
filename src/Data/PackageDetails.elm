@@ -1,8 +1,9 @@
-module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, retrievePackageDetails, setPackageEditable, setPackageVisible)
+module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, retrievePackageDetails, setPackageEditable, setPackageVisible, setDeploymentStatus)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
 import Data.ResourceId exposing (ResourceId, decoder, toString)
+import Data.DeploymentStatus exposing (DeploymentStatus, decoder, toString)
 import Html exposing (..)
 import Http
 import Json.Decode exposing (Decoder, bool, fail, float, int, list, nullable, string, succeed)
@@ -16,6 +17,7 @@ type alias PackageDetails =
     , id : ResourceId
     , title : String
     , visible : Bool
+    , deploymentStatus : DeploymentStatus
     , editable : Bool
     , resources : List Resource
     }
@@ -58,12 +60,44 @@ detailsDecoder =
         |> required "id" Data.ResourceId.decoder
         |> required "title" string
         |> required "visible" bool
+        |> required "deploymentStatus" Data.DeploymentStatus.decoder
         |> required "editable" bool
         |> required "resources" resourcesDecoder
 
 
 setPackageVisible : Guid -> Bool -> String -> String -> Http.Request PkgVisible
 setPackageVisible courseId visible token baseUrl =
+    let
+        headers =
+            [ Http.header
+                "Accept"
+                "application/json"
+            , Http.header
+                "Authorization"
+                ("Bearer "
+                    ++ token
+                )
+            ]
+
+        url =
+            baseUrl ++ "/content-service/api/v1/packages/" ++ Data.Guid.toString courseId ++ "/status/"
+
+        body =
+            Encode.list Encode.string [ Data.Guid.toString courseId ]
+                |> Http.jsonBody
+    in
+    Http.request
+        { method = "POST"
+        , headers = headers
+        , url = url
+        , body = body
+        , expect = Http.expectJson pkgVisibleDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+setDeploymentStatus : Guid -> DeploymentStatus -> String -> String -> Http.Request PkgVisible
+setDeploymentStatus courseId status token baseUrl =
     let
         headers =
             [ Http.header
@@ -87,7 +121,7 @@ setPackageVisible courseId visible token baseUrl =
                         else
                             "false"
                      )
-                        visible
+                        True
                     )
                 ]
 
@@ -96,7 +130,7 @@ setPackageVisible courseId visible token baseUrl =
                 |> Http.jsonBody
     in
     Http.request
-        { method = "POST"
+        { method = "PUT"
         , headers = headers
         , url = url
         , body = body
@@ -104,6 +138,7 @@ setPackageVisible courseId visible token baseUrl =
         , timeout = Nothing
         , withCredentials = False
         }
+
 
 
 setPackageEditable : Guid -> Bool -> String -> String -> Http.Request PkgEditable
