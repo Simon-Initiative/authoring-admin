@@ -1,7 +1,7 @@
 module Data.DeploymentStatus exposing (..)
 
 import Html exposing (Html)
-import Json.Decode as Decode exposing (Decoder, succeed, fail)
+import Json.Decode as Decode exposing (Decoder, succeed, fail, oneOf, null, map)
 import Json.Encode as Encode exposing (Value)
 import Url.Parser
 
@@ -36,35 +36,42 @@ parseStatus statusText =
             Development
 
 
-decoder : Decoder DeploymentStatus
+decoder : Decoder (Maybe DeploymentStatus)
 decoder =
-    Decode.string
+    oneOf 
+      [ null Nothing 
+      , Decode.string
         |> Decode.andThen
             (\s ->
                 case s of
                     "DEVELOPMENT" ->
-                        succeed Development
+                        map Just <| succeed Development
 
                     "QA" ->
-                        succeed QA
+                        map Just <| succeed QA
 
                     "REQUESTING_PRODUCTION" ->
-                        succeed RequestingProduction
+                        map Just <| succeed RequestingProduction
 
                     "PRODUCTION" ->
-                        succeed Production
+                        map Just <| succeed Production
 
                     _ ->
-                        fail <| "I don't know how to decode " ++ s
+                        succeed Nothing
             )
+      ]
 
 
 -- TRANSFORM
 
-
--- encode : DeploymentStatus -> Value
--- encode DeploymentStatus =
---     Encode.string
+-- encode to the string parameter value the content service is looking for
+encode : DeploymentStatus -> String
+encode status =
+    case status of 
+      Development -> "DEVELOPMENT"
+      QA -> "QA"
+      RequestingProduction -> "REQUESTING_PRODUCTION"
+      Production -> "PRODUCTION"
 
 
 toString : DeploymentStatus -> String

@@ -53,7 +53,7 @@ view model =
         ]
     }
 
--- modified decoder from from https://github.com/elm-community/html-extra/blob/2.2.0/src/Html/Events/Extra.elm
+-- modified decoder from https://github.com/elm-community/html-extra/blob/2.2.0/src/Html/Events/Extra.elm
 customDecoder : Json.Decoder a -> (a -> Result String b) -> Json.Decoder b
 customDecoder d f =
     let

@@ -3,7 +3,7 @@ module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, re
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
 import Data.ResourceId exposing (ResourceId, decoder, toString)
-import Data.DeploymentStatus exposing (DeploymentStatus, decoder, toString)
+import Data.DeploymentStatus exposing (DeploymentStatus, decoder, toString, encode)
 import Html exposing (..)
 import Http
 import Json.Decode exposing (Decoder, bool, fail, float, int, list, nullable, string, succeed)
@@ -17,7 +17,7 @@ type alias PackageDetails =
     , id : ResourceId
     , title : String
     , visible : Bool
-    , deploymentStatus : DeploymentStatus
+    , deploymentStatus : Maybe DeploymentStatus
     , editable : Bool
     , resources : List Resource
     }
@@ -80,7 +80,19 @@ setPackageVisible courseId visible token baseUrl =
             ]
 
         url =
-            baseUrl ++ "/content-service/api/v1/packages/" ++ Data.Guid.toString courseId ++ "/status/"
+            Url.crossOrigin baseUrl
+                [ "content-service", "api", "v1", "packages", "set", "visible" ]
+                [ Url.string "visible"
+                    ((\n ->
+                        if n then
+                            "true"
+
+                        else
+                            "false"
+                     )
+                        visible
+                    )
+                ]
 
         body =
             Encode.list Encode.string [ Data.Guid.toString courseId ]
@@ -96,7 +108,7 @@ setPackageVisible courseId visible token baseUrl =
         , withCredentials = False
         }
 
-setDeploymentStatus : Guid -> DeploymentStatus -> String -> String -> Http.Request PkgVisible
+setDeploymentStatus : Guid -> DeploymentStatus -> String -> String -> Http.Request Bool
 setDeploymentStatus courseId status token baseUrl =
     let
         headers =
@@ -111,19 +123,7 @@ setDeploymentStatus courseId status token baseUrl =
             ]
 
         url =
-            Url.crossOrigin baseUrl
-                [ "content-service", "api", "v1", "packages", "set", "visible" ]
-                [ Url.string "visible"
-                    ((\n ->
-                        if n then
-                            "true"
-
-                        else
-                            "false"
-                     )
-                        True
-                    )
-                ]
+            baseUrl ++ "/content-service/api/v1/packages/" ++ Data.Guid.toString courseId ++ "/status/" ++ encode status
 
         body =
             Encode.list Encode.string [ Data.Guid.toString courseId ]
@@ -134,7 +134,7 @@ setDeploymentStatus courseId status token baseUrl =
         , headers = headers
         , url = url
         , body = body
-        , expect = Http.expectJson pkgVisibleDecoder
+        , expect = Http.expectJson bool
         , timeout = Nothing
         , withCredentials = False
         }

@@ -9,9 +9,9 @@ import Data.DeploymentStatus as DeploymentStatus exposing (DeploymentStatus, par
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, button, div, fieldset, h1, h3, input, label, select, option, li, text, textarea, toUnstyled, ul)
+import Html.Styled exposing (Html, br, button, div, fieldset, h1, h3, h4, input, label, select, option, li, text, textarea, toUnstyled, ul)
 import Html.Styled.Attributes exposing (attribute, css, id, checked, selected, class, placeholder, type_, value)
-import Html.Styled.Events exposing (onClick, onInput, onSubmit, on)
+import Html.Styled.Events exposing (onClick, onInput, onSubmit, on, targetValue)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)
@@ -60,10 +60,10 @@ type Msg
     | PassedSlowLoadThreshold
     | ToggleVisible PackageDetails
     | ToggleEditable PackageDetails
-    | ChangeDeploymentStatus PackageDetails DeploymentStatus
+    | ChangeDeploymentStatus PackageDetails (Maybe DeploymentStatus)
     | PkgEditableDetails (Result Http.Error PackageDetails.PkgEditable)
     | PkgVisibleDetails (Result Http.Error PackageDetails.PkgVisible)
-    | PkgDeploymentStatus (Result Http.Error PackageDetails)
+    | PkgDeploymentStatus (Result Http.Error Bool)
 
 
 
@@ -73,16 +73,18 @@ type Msg
 viewDetails : PackageDetails -> Html Msg
 viewDetails details =
     let
-        isSelected val =
+        isSelected statusString =
             case details.deploymentStatus of
-                DeploymentStatus.Development ->
-                    val == "Development"
-                DeploymentStatus.QA ->
-                    val == "QA"
-                DeploymentStatus.RequestingProduction ->
-                    val == "Requesting Production"
-                DeploymentStatus.Production ->
-                    val == "Production"
+                Nothing -> 
+                    statusString == "Nothing"
+                Just DeploymentStatus.Development ->
+                    statusString == "Development"
+                Just DeploymentStatus.QA ->
+                    statusString == "QA"
+                Just DeploymentStatus.RequestingProduction ->
+                    statusString == "Requesting Production"
+                Just DeploymentStatus.Production ->
+                    statusString == "Production"
     in
         div []
             [ h3 [] [ text details.title ]
@@ -94,7 +96,7 @@ viewDetails details =
                         , onClick <| ToggleVisible details
                         ]
                         []
-                    , text <| " visible"
+                    , text <| " visible "
                     ]
                 , label []
                     [ input
@@ -104,30 +106,34 @@ viewDetails details =
                         ]
                         []
                     , text <| " editable"
-                    ]
+                    ] 
+                ]
+                , br [] []
                 , div [ class "pure-u-1 pure-u-md-1-3" ]
                     [ label [ css [ marginRight (px 10) ] ] [ text "Deployment Status" ]
-                    , select [ id "state", class "pure-input-1-2", on "change" (Decode.map ChangeDeploymentStatus targetValueStatus) ]
-                        [ option [ value "dev", selected (isSelected "Development") ] [ text "Development" ]
-                        , option [ value "qa", selected (isSelected "QA")] [ text "QA" ]
-                        , option [ value "requestProd", selected (isSelected "Requesting Production")] [ text "Requesting Production" ]
-                        , option [ value "prod", selected (isSelected "Production")] [ text "Production" ]
+                    , select [ id "state", class "pure-input-1-2", on "change" (Decode.map (ChangeDeploymentStatus details) targetValueStatus ) ]
+                        [ option [ value "Nothing", selected (isSelected "Nothing") ] [ text "" ]
+                        , option [ value "Development", selected (isSelected "Development") ] [ text "Development" ]
+                        , option [ value "QA", selected (isSelected "QA")] [ text "QA" ]
+                        , option [ value "Requesting Production", selected (isSelected "Requesting Production")] [ text "Requesting Production" ]
+                        , option [ value "Production", selected (isSelected "Production")] [ text "Production" ]
                         ]
                     ]
-                ]
-            , viewResources details.resources
+                , viewResources details.resources
             ]
 
-targetValueStatus : Decode.Decoder DeploymentStatus
+targetValueStatus : Decode.Decoder (Maybe DeploymentStatus)
 targetValueStatus =
-    customDecoder
-        (\s ->
-            Ok <| parseStatus s
-        )
+    customDecoder targetValue
+        (\s -> if s == "Nothing" then Ok Nothing else Ok <| Just (parseStatus s))
 
 viewResources : List Resource -> Html Msg
 viewResources resources =
-    ul [] (List.map (\p -> li [] [ text p.title ]) resources)
+    div []
+    [ h4 [] [text "Resources"]
+    , ul [] (List.map (\p -> li [] [ text p.title ]) resources)
+    ]
+    
 
 
 view : Model -> { title : String, content : Html Msg }
@@ -231,11 +237,13 @@ update msg model =
                 ]
             )
 
-        ChangeDeploymentStatus details status ->
-            ( { model | status = Loaded { details | deploymentStatus = status } }
+        ChangeDeploymentStatus details newStatus ->
+            ( { model | status = Loaded { details | deploymentStatus = newStatus } }
             , Cmd.batch
-                [ setDeploymentStatus details.guid status (toContext model).session.token (toContext model).baseUrl
-                    |> Http.send RetrievedDetails
+                [ case newStatus of 
+                    Nothing -> Cmd.none
+                    Just status -> setDeploymentStatus details.guid status (toContext model).session.token (toContext model).baseUrl
+                        |> Http.send PkgDeploymentStatus
                 ]
             )
 
