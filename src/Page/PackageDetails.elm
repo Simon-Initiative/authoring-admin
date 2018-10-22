@@ -4,19 +4,22 @@ import AppContext exposing (AppContext)
 import Browser.Navigation as Nav
 import Data.Guid as Guid exposing (Guid)
 import Data.Package as Package exposing (Package)
-import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails, setPackageEditable, setPackageVisible)
+import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails, setPackageEditable, setPackageVisible, setDeploymentStatus)
+import Data.DeploymentStatus as DeploymentStatus exposing (DeploymentStatus, parseStatus)
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, button, div, fieldset, h1, h3, input, label, li, text, textarea, toUnstyled, ul)
-import Html.Styled.Attributes exposing (attribute, checked, class, placeholder, type_, value)
-import Html.Styled.Events exposing (onClick, onInput, onSubmit)
+import Html.Styled exposing (Html, br, button, div, fieldset, h1, h3, h4, input, label, select, option, li, text, textarea, toUnstyled, ul)
+import Html.Styled.Attributes exposing (attribute, css, id, checked, selected, class, placeholder, type_, value)
+import Html.Styled.Events exposing (onClick, onInput, onSubmit, on, targetValue)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline exposing (hardcoded, required)
 import Json.Encode as Encode
+import Page.Home exposing (customDecoder)
 import Loading
 import Log
+import Css exposing (..)
 import Route
 import Task
 import Theme exposing (globalThemeStyles)
@@ -57,8 +60,10 @@ type Msg
     | PassedSlowLoadThreshold
     | ToggleVisible PackageDetails
     | ToggleEditable PackageDetails
+    | ChangeDeploymentStatus PackageDetails (Maybe DeploymentStatus)
     | PkgEditableDetails (Result Http.Error PackageDetails.PkgEditable)
     | PkgVisibleDetails (Result Http.Error PackageDetails.PkgVisible)
+    | PkgDeploymentStatus (Result Http.Error Bool)
 
 
 
@@ -67,35 +72,68 @@ type Msg
 
 viewDetails : PackageDetails -> Html Msg
 viewDetails details =
-    div []
-        [ h3 [] [ text details.title ]
-        , div []
-            [ label []
-                [ input
-                    [ type_ "checkbox"
-                    , checked <| details.visible
-                    , onClick <| ToggleVisible details
+    let
+        isSelected statusString =
+            case details.deploymentStatus of
+                Nothing -> 
+                    statusString == "Nothing"
+                Just DeploymentStatus.Development ->
+                    statusString == "Development"
+                Just DeploymentStatus.QA ->
+                    statusString == "QA"
+                Just DeploymentStatus.RequestingProduction ->
+                    statusString == "Requesting Production"
+                Just DeploymentStatus.Production ->
+                    statusString == "Production"
+    in
+        div []
+            [ h3 [] [ text details.title ]
+            , div []
+                [ label []
+                    [ input
+                        [ type_ "checkbox"
+                        , Html.Styled.Attributes.checked <| details.visible
+                        , onClick <| ToggleVisible details
+                        ]
+                        []
+                    , text <| " visible "
                     ]
-                    []
-                , text <| " visible"
+                , label []
+                    [ input
+                        [ type_ "checkbox"
+                        , Html.Styled.Attributes.checked <| details.editable
+                        , onClick <| ToggleEditable details
+                        ]
+                        []
+                    , text <| " editable"
+                    ] 
                 ]
-            , label []
-                [ input
-                    [ type_ "checkbox"
-                    , checked <| details.editable
-                    , onClick <| ToggleEditable details
+                , br [] []
+                , div [ class "pure-u-1 pure-u-md-1-3" ]
+                    [ label [ css [ marginRight (px 10) ] ] [ text "Deployment Status" ]
+                    , select [ id "state", class "pure-input-1-2", on "change" (Decode.map (ChangeDeploymentStatus details) targetValueStatus ) ]
+                        [ option [ value "Nothing", selected (isSelected "Nothing") ] [ text "" ]
+                        , option [ value "Development", selected (isSelected "Development") ] [ text "Development" ]
+                        , option [ value "QA", selected (isSelected "QA")] [ text "QA" ]
+                        , option [ value "Requesting Production", selected (isSelected "Requesting Production")] [ text "Requesting Production" ]
+                        , option [ value "Production", selected (isSelected "Production")] [ text "Production" ]
+                        ]
                     ]
-                    []
-                , text <| " editable"
-                ]
+                , viewResources details.resources
             ]
-        , viewResources details.resources
-        ]
 
+targetValueStatus : Decode.Decoder (Maybe DeploymentStatus)
+targetValueStatus =
+    customDecoder targetValue
+        (\s -> if s == "Nothing" then Ok Nothing else Ok <| Just (parseStatus s))
 
 viewResources : List Resource -> Html Msg
 viewResources resources =
-    ul [] (List.map (\p -> li [] [ text p.title ]) resources)
+    div []
+    [ h4 [] [text "Resources"]
+    , ul [] (List.map (\p -> li [] [ text p.title ]) resources)
+    ]
+    
 
 
 view : Model -> { title : String, content : Html Msg }
@@ -165,6 +203,16 @@ update msg model =
             , Cmd.none
             )
 
+        PkgDeploymentStatus (Err err) ->
+            ( model
+            , Cmd.none
+            )
+        
+        PkgDeploymentStatus (Ok status) ->
+            ( model
+            , Cmd.none
+            )
+
         ToggleVisible details ->
             let
                 viz =
@@ -186,6 +234,16 @@ update msg model =
             , Cmd.batch
                 [ setPackageEditable details.guid loc (toContext model).session.token (toContext model).baseUrl
                     |> Http.send PkgEditableDetails
+                ]
+            )
+
+        ChangeDeploymentStatus details newStatus ->
+            ( { model | status = Loaded { details | deploymentStatus = newStatus } }
+            , Cmd.batch
+                [ case newStatus of 
+                    Nothing -> Cmd.none
+                    Just status -> setDeploymentStatus details.guid status (toContext model).session.token (toContext model).baseUrl
+                        |> Http.send PkgDeploymentStatus
                 ]
             )
 
