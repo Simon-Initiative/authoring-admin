@@ -163,7 +163,6 @@ viewDetails details model =
                 , viewResources details.resources
             ]
 
-
 targetValueStatus : Decode.Decoder (Maybe DeploymentStatus)
 targetValueStatus =
     customDecoder targetValue
@@ -171,7 +170,11 @@ targetValueStatus =
 
 viewResources : List Resource -> Html Msg
 viewResources resources =
-    ul [] (List.map (\p -> li [] [ text p.title ]) resources)
+    div []
+    [ h4 [] [text "Resources"]
+    , ul [] (List.map (\p -> li [] [ text p.title ]) resources)
+    ]
+    
 
 
 view : Model -> { title : String, content : Html Msg }
