@@ -23,7 +23,6 @@ import Css exposing (marginRight, marginTop, px, width, color, rgb)
 import Route
 import Task
 import Theme exposing (globalThemeStyles)
-import Debug
 
 
 -- MODEL
