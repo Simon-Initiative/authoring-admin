@@ -1,4 +1,4 @@
-module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, retrievePackageDetails, setPackageEditable, setPackageVisible, setDeploymentStatus, clonePackage)
+module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, PkgClone, retrievePackageDetails, setPackageEditable, setPackageVisible, setDeploymentStatus, clonePackage)
 
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
@@ -141,7 +141,7 @@ setDeploymentStatus courseId status token baseUrl =
         }
 
 
-clonePackage : Guid -> String -> String -> String -> Http.Request Bool
+clonePackage : Guid -> String -> String -> String -> Http.Request PkgClone
 clonePackage packageId clonePackageId token baseUrl =
     let
         headers =
@@ -167,7 +167,7 @@ clonePackage packageId clonePackageId token baseUrl =
         , headers = headers
         , url = url
         , body = body
-        , expect = Http.expectJson bool
+        , expect = Http.expectJson pkgCloneDecoder
         , timeout = Nothing
         , withCredentials = False
         }
@@ -242,3 +242,13 @@ pkgVisibleDecoder =
     succeed PkgVisible
         |> required "visible" string
         |> required "packages" (list string)
+
+
+type alias PkgClone =
+    { message : String }
+
+
+pkgCloneDecoder : Decoder PkgClone
+pkgCloneDecoder =
+    succeed PkgClone
+        |> required "message" string

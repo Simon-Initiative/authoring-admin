@@ -23,7 +23,7 @@ import Css exposing (marginRight, marginTop, px, width, color, rgb)
 import Route
 import Task
 import Theme exposing (globalThemeStyles)
-
+import Debug
 
 
 -- MODEL
@@ -46,7 +46,7 @@ type Status
 type CloneStatus
     = CloneInactive
     | ClonePending
-    | CloneSuccessful
+    | CloneSuccessful String
     | CloneFailed Http.Error
 
 
@@ -76,7 +76,7 @@ type Msg
     | PkgDeploymentStatus (Result Http.Error Bool)
     | ChangeClonePackageId String
     | ClonePackage PackageDetails String
-    | ClonePackageStatus (Result Http.Error Bool)
+    | ClonePackageStatus (Result Http.Error PackageDetails.PkgClone)
 
 
 -- VIEW
@@ -144,10 +144,10 @@ viewDetails details model =
                                         []
                                     , text "Cloning package. Please wait..."
                                     ]
-                            CloneSuccessful ->
-                                div [ css [ color (rgb 39 174 96) ] ] [ text "Clone successful" ]
+                            CloneSuccessful message ->
+                                div [ css [ color (rgb 39 174 96) ] ] [ text ("Clone successful: " ++ message) ]
                             CloneFailed err ->
-                                div [ css [ color (rgb 192 57 43) ] ] [ text "Clone failed" ]
+                                div [ css [ color (rgb 192 57 43) ] ] [ text ("Clone failed: " ++ (httpErrorMessage err)) ]
                     ]
                 , br [] []
                 , div [ class "pure-u-1 pure-u-md-1-3" ]
@@ -174,8 +174,18 @@ viewResources resources =
     [ h4 [] [text "Resources"]
     , ul [] (List.map (\p -> li [] [ text p.title ]) resources)
     ]
-    
 
+httpErrorMessage : Http.Error -> String
+httpErrorMessage err =
+    case err of
+        Http.BadStatus response ->
+            response.status.message
+
+        Http.BadPayload msg response ->
+            msg
+
+        _ ->
+            "Unknown Error"
 
 view : Model -> { title : String, content : Html Msg }
 view model =
@@ -259,8 +269,8 @@ update msg model =
             , Cmd.none
             )
         
-        ClonePackageStatus (Ok status) ->
-            ( { model | cloneStatus = CloneSuccessful }
+        ClonePackageStatus (Ok res) ->
+            ( { model | cloneStatus = CloneSuccessful res.message }
             , Cmd.none
             )
 
