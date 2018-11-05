@@ -1,9 +1,10 @@
-module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, retrievePackageDetails, setDeploymentStatus, setPackageEditable, setPackageVisible)
+module Data.PackageDetails exposing (PackageDetails, PkgClone, PkgEditable, PkgVisible, clonePackage, retrievePackageDetails, setDeploymentStatus, setPackageEditable, setPackageVisible)
 
 import Data.DeploymentStatus exposing (DeploymentStatus, decoder, encode, toString)
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
 import Data.ResourceId exposing (ResourceId, decoder, toString)
+import Dict
 import Html exposing (..)
 import Http
 import Json.Decode exposing (Decoder, bool, fail, float, int, list, nullable, string, succeed)
@@ -141,6 +142,38 @@ setDeploymentStatus courseId status token baseUrl =
         }
 
 
+clonePackage : Guid -> String -> String -> String -> Http.Request PkgClone
+clonePackage packageId clonePackageId token baseUrl =
+    let
+        headers =
+            [ Http.header
+                "Accept"
+                "application/json"
+            , Http.header
+                "Authorization"
+                ("Bearer "
+                    ++ token
+                )
+            ]
+
+        url =
+            baseUrl ++ "/content-service/api/v1/packages/" ++ Data.Guid.toString packageId ++ "/new/clone"
+
+        body =
+            Encode.object [ ( "id", Encode.string clonePackageId ) ]
+                |> Http.jsonBody
+    in
+    Http.request
+        { method = "POST"
+        , headers = headers
+        , url = url
+        , body = body
+        , expect = Http.expectJson pkgCloneDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
 setPackageEditable : Guid -> Bool -> String -> String -> Http.Request PkgEditable
 setPackageEditable courseId editable token baseUrl =
     let
@@ -209,3 +242,13 @@ pkgVisibleDecoder =
     succeed PkgVisible
         |> required "visible" string
         |> required "packages" (list string)
+
+
+type alias PkgClone =
+    { message : String }
+
+
+pkgCloneDecoder : Decoder PkgClone
+pkgCloneDecoder =
+    succeed PkgClone
+        |> required "message" string

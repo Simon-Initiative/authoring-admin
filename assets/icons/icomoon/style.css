@@ -24,6 +24,31 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@keyframes anim-rotate {
+	0% {
+		transform: rotate(0);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.spinner {
+	display: inline-block;
+	font-size:1em;
+	height: 1em;
+	line-height: 1;
+	margin: .5em;
+	animation: anim-rotate 2s infinite linear;
+	text-shadow: 0 0 .25em rgba(255,255,255, .3);
+}
+.spinner-steps {
+	animation: anim-rotate 1s infinite steps(8);
+}
+.spinner-steps2 {
+	animation: anim-rotate 1s infinite steps(12);
+}
+
 .icon-home:before {
   content: "\e900";
 }

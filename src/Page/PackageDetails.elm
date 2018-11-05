@@ -6,12 +6,12 @@ import Css exposing (..)
 import Data.DeploymentStatus as DeploymentStatus exposing (DeploymentStatus, parseStatus)
 import Data.Guid as Guid exposing (Guid)
 import Data.Package as Package exposing (Package)
-import Data.PackageDetails as PackageDetails exposing (PackageDetails, retrievePackageDetails, setDeploymentStatus, setPackageEditable, setPackageVisible)
+import Data.PackageDetails as PackageDetails exposing (PackageDetails, clonePackage, retrievePackageDetails, setDeploymentStatus, setPackageEditable, setPackageVisible)
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, br, button, div, fieldset, h1, h3, h4, input, label, li, option, select, text, textarea, toUnstyled, ul)
-import Html.Styled.Attributes exposing (attribute, checked, class, css, id, placeholder, selected, type_, value)
+import Html.Styled exposing (Html, br, button, div, fieldset, form, h1, h3, h4, i, input, label, legend, li, option, select, text, textarea, toUnstyled, ul)
+import Html.Styled.Attributes exposing (attribute, checked, class, css, disabled, id, placeholder, selected, type_, value)
 import Html.Styled.Events exposing (on, onClick, onInput, onSubmit, targetValue)
 import Http
 import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
@@ -32,6 +32,8 @@ import Theme exposing (globalThemeStyles)
 type alias Model =
     { context : AppContext
     , status : Status
+    , clonePackageId : String
+    , cloneStatus : CloneStatus
     }
 
 
@@ -42,10 +44,19 @@ type Status
     | Failed Http.Error
 
 
+type CloneStatus
+    = CloneInactive
+    | ClonePending
+    | CloneSuccessful String
+    | CloneFailed Http.Error
+
+
 init : Guid -> AppContext -> ( Model, Cmd Msg )
 init packageId context =
     ( { context = context
       , status = Loading
+      , clonePackageId = ""
+      , cloneStatus = CloneInactive
       }
     , Cmd.batch
         [ retrievePackageDetails packageId context.session.token context.baseUrl
@@ -64,14 +75,17 @@ type Msg
     | PkgEditableDetails (Result Http.Error PackageDetails.PkgEditable)
     | PkgVisibleDetails (Result Http.Error PackageDetails.PkgVisible)
     | PkgDeploymentStatus (Result Http.Error Bool)
+    | ChangeClonePackageId String
+    | ClonePackage PackageDetails String
+    | ClonePackageStatus (Result Http.Error PackageDetails.PkgClone)
 
 
 
 -- VIEW
 
 
-viewDetails : PackageDetails -> Html Msg
-viewDetails details =
+viewDetails : PackageDetails -> Model -> Html Msg
+viewDetails details model =
     let
         isSelected statusString =
             case details.deploymentStatus of
@@ -115,6 +129,39 @@ viewDetails details =
                 , text <| " editable"
                 ]
             ]
+        , div [ class "pure-u-1 pure-u-md-1-3", css [ marginTop (px 10) ] ]
+            [ form [ class "pure-form", onSubmit (ClonePackage details model.clonePackageId) ]
+                [ fieldset []
+                    [ legend [] [ text "Clone Package" ]
+                    , input
+                        [ css [ marginRight (px 10), width (px 300) ], placeholder "Enter new package id for clone", onInput ChangeClonePackageId ]
+                        [ text model.clonePackageId ]
+                    , button
+                        [ class "pure-button pure-button-primary"
+                        , css [ marginRight (px 10) ]
+                        , disabled (model.clonePackageId == "" && model.cloneStatus /= ClonePending)
+                        ]
+                        [ text "Clone" ]
+                    ]
+                ]
+            , case model.cloneStatus of
+                CloneInactive ->
+                    div [] [ text "" ]
+
+                ClonePending ->
+                    div [ css [ color (rgb 41 128 185) ] ]
+                        [ i
+                            [ class "spinner spinner-steps2 icon-spinner3", css [ marginRight (px 8) ] ]
+                            []
+                        , text "Cloning package. Please wait..."
+                        ]
+
+                CloneSuccessful message ->
+                    div [ css [ color (rgb 39 174 96) ] ] [ text ("Clone successful: " ++ message) ]
+
+                CloneFailed err ->
+                    div [ css [ color (rgb 192 57 43) ] ] [ text ("Clone failed: " ++ httpErrorMessage err) ]
+            ]
         , br [] []
         , div [ class "pure-u-1 pure-u-md-1-3" ]
             [ label [ css [ marginRight (px 10) ] ] [ text "Deployment Status" ]
@@ -151,6 +198,19 @@ viewResources resources =
         ]
 
 
+httpErrorMessage : Http.Error -> String
+httpErrorMessage err =
+    case err of
+        Http.BadStatus response ->
+            response.status.message
+
+        Http.BadPayload msg response ->
+            msg
+
+        _ ->
+            "Unknown Error"
+
+
 view : Model -> { title : String, content : Html Msg }
 view model =
     { title = "Package Details"
@@ -159,7 +219,7 @@ view model =
             [ globalThemeStyles model.context.theme
             , case model.status of
                 Loaded details ->
-                    viewDetails details
+                    viewDetails details model
 
                 Loading ->
                     text ""
@@ -228,6 +288,16 @@ update msg model =
             , Cmd.none
             )
 
+        ClonePackageStatus (Err err) ->
+            ( { model | cloneStatus = CloneFailed err }
+            , Cmd.none
+            )
+
+        ClonePackageStatus (Ok res) ->
+            ( { model | cloneStatus = CloneSuccessful res.message }
+            , Cmd.none
+            )
+
         ToggleVisible details ->
             let
                 viz =
@@ -249,6 +319,19 @@ update msg model =
             , Cmd.batch
                 [ setPackageEditable details.guid loc (toContext model).session.token (toContext model).baseUrl
                     |> Http.send PkgEditableDetails
+                ]
+            )
+
+        ChangeClonePackageId clonePackageId ->
+            ( { model | clonePackageId = clonePackageId }
+            , Cmd.none
+            )
+
+        ClonePackage details clonePackageId ->
+            ( { model | cloneStatus = ClonePending }
+            , Cmd.batch
+                [ clonePackage details.guid clonePackageId (toContext model).session.token (toContext model).baseUrl
+                    |> Http.send ClonePackageStatus
                 ]
             )
 
