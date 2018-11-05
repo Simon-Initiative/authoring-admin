@@ -1,9 +1,10 @@
-module Data.DeploymentStatus exposing (..)
+module Data.DeploymentStatus exposing (DeploymentStatus(..), decoder, encode, parseStatus, toString)
 
 import Html exposing (Html)
-import Json.Decode as Decode exposing (Decoder, succeed, fail, oneOf, null, map)
+import Json.Decode as Decode exposing (Decoder, fail, map, null, oneOf, succeed)
 import Json.Encode as Encode exposing (Value)
 import Url.Parser
+
 
 
 -- TYPES
@@ -11,17 +12,23 @@ import Url.Parser
 
 type DeploymentStatus
     = Development
+    | RequestingQA
     | QA
     | RequestingProduction
     | Production
 
 
+
 -- CREATE
+
 
 parseStatus statusText =
     case statusText of
         "Development" ->
             Development
+
+        "Requesting QA" ->
+            RequestingQA
 
         "QA" ->
             QA
@@ -31,47 +38,62 @@ parseStatus statusText =
 
         "Production" ->
             Production
-            
+
         _ ->
             Development
 
 
 decoder : Decoder (Maybe DeploymentStatus)
 decoder =
-    oneOf 
-      [ null Nothing 
-      , Decode.string
-        |> Decode.andThen
-            (\s ->
-                case s of
-                    "DEVELOPMENT" ->
-                        map Just <| succeed Development
+    oneOf
+        [ null Nothing
+        , Decode.string
+            |> Decode.andThen
+                (\s ->
+                    case s of
+                        "DEVELOPMENT" ->
+                            map Just <| succeed Development
 
-                    "QA" ->
-                        map Just <| succeed QA
+                        "REQUESTING_QA" ->
+                            map Just <| succeed RequestingQA
 
-                    "REQUESTING_PRODUCTION" ->
-                        map Just <| succeed RequestingProduction
+                        "QA" ->
+                            map Just <| succeed QA
 
-                    "PRODUCTION" ->
-                        map Just <| succeed Production
+                        "REQUESTING_PRODUCTION" ->
+                            map Just <| succeed RequestingProduction
 
-                    _ ->
-                        succeed Nothing
-            )
-      ]
+                        "PRODUCTION" ->
+                            map Just <| succeed Production
+
+                        _ ->
+                            succeed Nothing
+                )
+        ]
+
 
 
 -- TRANSFORM
-
 -- encode to the string parameter value the content service is looking for
+
+
 encode : DeploymentStatus -> String
 encode status =
-    case status of 
-      Development -> "DEVELOPMENT"
-      QA -> "QA"
-      RequestingProduction -> "REQUESTING_PRODUCTION"
-      Production -> "PRODUCTION"
+    case status of
+        Development ->
+            "DEVELOPMENT"
+
+        RequestingQA ->
+            "REQUESTING_QA"
+
+        QA ->
+            "QA"
+
+        RequestingProduction ->
+            "REQUESTING_PRODUCTION"
+
+        Production ->
+            "PRODUCTION"
 
 
 toString : DeploymentStatus -> String
@@ -79,6 +101,9 @@ toString status =
     case status of
         Development ->
             "Development"
+
+        RequestingQA ->
+            "Requesting QA"
 
         QA ->
             "QA"

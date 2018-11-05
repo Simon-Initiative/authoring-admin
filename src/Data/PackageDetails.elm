@@ -1,9 +1,9 @@
-module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, retrievePackageDetails, setPackageEditable, setPackageVisible, setDeploymentStatus)
+module Data.PackageDetails exposing (PackageDetails, PkgEditable, PkgVisible, retrievePackageDetails, setDeploymentStatus, setPackageEditable, setPackageVisible)
 
+import Data.DeploymentStatus exposing (DeploymentStatus, decoder, encode, toString)
 import Data.Guid exposing (Guid, decoder)
 import Data.Resource exposing (Resource, resourcesDecoder)
 import Data.ResourceId exposing (ResourceId, decoder, toString)
-import Data.DeploymentStatus exposing (DeploymentStatus, decoder, toString, encode)
 import Html exposing (..)
 import Http
 import Json.Decode exposing (Decoder, bool, fail, float, int, list, nullable, string, succeed)
@@ -108,6 +108,7 @@ setPackageVisible courseId visible token baseUrl =
         , withCredentials = False
         }
 
+
 setDeploymentStatus : Guid -> DeploymentStatus -> String -> String -> Http.Request Bool
 setDeploymentStatus courseId status token baseUrl =
     let
@@ -138,7 +139,6 @@ setDeploymentStatus courseId status token baseUrl =
         , timeout = Nothing
         , withCredentials = False
         }
-
 
 
 setPackageEditable : Guid -> Bool -> String -> String -> Http.Request PkgEditable
