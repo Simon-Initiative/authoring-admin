@@ -7,9 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Course Editor Admin</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.1/custom-elements.min.js"></script>
-		
-  <script type="text/x-mathjax-config">
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.1/custom-elements.min.js"></script> -->
+
+  <!-- <script type="text/x-mathjax-config">
     MathJax.Hub.Config(
       {   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
         processEscapes: true,
@@ -24,14 +24,14 @@
             }
       }
         );
-  </script>
+  </script> -->
 
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script> -->
 
   <script type="text/javascript" src="elm.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" 
-    integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w"
+    crossorigin="anonymous">
   <link rel="stylesheet" href="assets/css/layouts/side-menu.css">
   <link rel="stylesheet" href="assets/icons/icomoon/style.css">
 </head>
@@ -46,95 +46,97 @@
 
   var app = null;
 
-  var typesetTimeout = null
-  var typesetQueue = []
-  function enqueueTypeset(el) {
-    typesetQueue.push(el)
-    clearTimeout(typesetTimeout)
-    typesetTimeout = setTimeout(function () {
-      var toTypeset = typesetQueue
-      MathJax.Hub.Queue(["resetEquationNumbers", MathJax.InputJax.TeX]);
-      MathJax.Hub.Queue(['Typeset', MathJax.Hub, typesetQueue], function (arg) {
-        var msg = document.getElementById('MathJax_Message');
-        if (msg !== null) {
-          msg.parentElement.removeChild(msg);
-        }
-        toTypeset.forEach(function (el) { el.style.opacity = 1 })
-      })
-      typesetQueue = []
-    }, 1)
-  }
-  
-  var updateQueue = []
-  var updateTimeout = null
-  function enqueueUpdate(el) {
-    updateQueue.push(el)
-    clearTimeout(updateTimeout)
-    updateTimeout = setTimeout(function () {
-      MathJax.Hub.Queue(['Update', MathJax.Hub, updateQueue], function(arg) {
-        var msg = document.getElementById('MathJax_Message');
-        if (msg !== null) {
-          msg.parentElement.removeChild(msg);
-        }
-      });
-      updateQueue = []
-    }, 0)
-  }
+  // var typesetTimeout = null
+  // var typesetQueue = []
+  // function enqueueTypeset(el) {
+  //   typesetQueue.push(el)
+  //   clearTimeout(typesetTimeout)
+  //   typesetTimeout = setTimeout(function () {
+  //     var toTypeset = typesetQueue
+  //     MathJax.Hub.Queue(["resetEquationNumbers", MathJax.InputJax.TeX]);
+  //     MathJax.Hub.Queue(['Typeset', MathJax.Hub, typesetQueue], function (arg) {
+  //       var msg = document.getElementById('MathJax_Message');
+  //       if (msg !== null) {
+  //         msg.parentElement.removeChild(msg);
+  //       }
+  //       toTypeset.forEach(function (el) { el.style.opacity = 1 })
+  //     })
+  //     typesetQueue = []
+  //   }, 1)
+  // }
 
-  customElements.define('math-text', class extends HTMLElement {
-		  constructor() {
-			super()
-			this._content = this.content
-		  }
-		  
-			get content() {
-				return this._content
-			}
-		
-			set content(value) {
-				if (this._content === value) return
-				this._content = value
-				var jaxScript = this.querySelector('script')
-				if (!jaxScript) return
-				jaxScript.textContent = this._content
-				
-        enqueueUpdate(this)
-			}
-		
-			connectedCallback() {
-				this.textContent = this._content
-				this._connected = true
-				this.style.opacity = 0
-				this.style.display = 'inline'
+  // var updateQueue = []
+  // var updateTimeout = null
+  // function enqueueUpdate(el) {
+  //   updateQueue.push(el)
+  //   clearTimeout(updateTimeout)
+  //   updateTimeout = setTimeout(function () {
+  //     MathJax.Hub.Queue(['Update', MathJax.Hub, updateQueue], function(arg) {
+  //       var msg = document.getElementById('MathJax_Message');
+  //       if (msg !== null) {
+  //         msg.parentElement.removeChild(msg);
+  //       }
+  //     });
+  //     updateQueue = []
+  //   }, 0)
+  // }
 
-        
-			  enqueueTypeset(this)
-			}
-		})
+  // customElements.define('math-text', class extends HTMLElement {
+  // 	  constructor() {
+  // 		super()
+  // 		this._content = this.content
+  // 	  }
 
-  var onLoginSuccess = function(token, profile, logoutUrl, managementUrl) {
+  // 		get content() {
+  // 			return this._content
+  // 		}
+
+  // 		set content(value) {
+  // 			if (this._content === value) return
+  // 			this._content = value
+  // 			var jaxScript = this.querySelector('script')
+  // 			if (!jaxScript) return
+  // 			jaxScript.textContent = this._content
+
+  //       enqueueUpdate(this)
+  // 		}
+
+  // 		connectedCallback() {
+  // 			this.textContent = this._content
+  // 			this._connected = true
+  // 			this.style.opacity = 0
+  // 			this.style.display = 'inline'
+
+
+  // 		  enqueueTypeset(this)
+  // 		}
+  // 	})
+
+  var onLoginSuccess = function (token, profile, logoutUrl, managementUrl) {
 
     var storedTheme = localStorage.getItem('theme');
     var theme = storedTheme ? JSON.parse(storedTheme) : '';
 
-    app = Elm.Main.init({ flags: {
-      token: token,
-      userProfile: profile,
-      logoutUrl: logoutUrl,
-      baseUrl: location.protocol + '//' + location.hostname,
-      theme: theme,
-    }});
+    app = Elm.Main.init({
+      flags: {
+        token: token,
+        userProfile: profile,
+        logoutUrl: logoutUrl,
+        baseUrl: location.protocol + '//' + location.hostname,
+        theme: theme,
+      }
+    });
 
-    app.ports.setStorage.subscribe(function(state) {
-        localStorage.setItem('theme', JSON.stringify(state));
+    app.ports.setStorage.subscribe(function (state) {
+      localStorage.setItem('theme', JSON.stringify(state));
     });
   };
 
-  var onLoginFailure = function(err) {
-    
+  var onLoginFailure = function (err) {
+
   };
 
-  var onTokenUpdate = function(token) {
+  var onTokenUpdate = function (token) {
     app.ports.onTokenUpdated.send(token);
   };
 
