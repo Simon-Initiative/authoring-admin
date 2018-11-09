@@ -21,6 +21,11 @@ type alias PackageDetails =
     , deploymentStatus : Maybe DeploymentStatus
     , editable : Bool
     , resources : List Resource
+    , buildStatus : String
+    , dateCreated : String
+    , svnLocation : String
+    , packageFamily : String
+    , version : String
     }
 
 
@@ -64,6 +69,11 @@ detailsDecoder =
         |> required "deploymentStatus" Data.DeploymentStatus.decoder
         |> required "editable" bool
         |> required "resources" resourcesDecoder
+        |> required "buildStatus" string
+        |> required "dateCreated" string
+        |> required "svnLocation" string
+        |> required "packageFamily" string
+        |> required "version" string
 
 
 setPackageVisible : Guid -> Bool -> String -> String -> Http.Request PkgVisible

@@ -10,7 +10,7 @@ import Data.PackageDetails as PackageDetails exposing (PackageDetails, clonePack
 import Data.Resource as Resource exposing (Resource, ResourceState)
 import Data.ResourceId as ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
-import Html.Styled exposing (Html, br, button, div, fieldset, form, h1, h3, h4, i, input, label, legend, li, option, select, text, textarea, toUnstyled, ul)
+import Html.Styled exposing (Html, br, button, div, span, fieldset, form, h1, h3, h4, i, input, label, legend, li, option, select, text, textarea, toUnstyled, ul)
 import Html.Styled.Attributes exposing (attribute, checked, class, css, disabled, id, placeholder, selected, type_, value)
 import Html.Styled.Events exposing (on, onClick, onInput, onSubmit, targetValue)
 import Http
@@ -109,8 +109,31 @@ viewDetails details model =
     in
     div []
         [ h3 [] [ text details.title ]
+        , div [ css [ marginBottom (px 20) ] ]
+            [ div []
+                [ span [ css [ fontWeight bold ] ] [ text "Version: " ]
+                , span [] [ text details.version ]
+                ]
+            , div []
+                [ span [ css [ fontWeight bold ] ] [ text "Package Family: " ]
+                , span [] [ text details.packageFamily ]
+                ]
+            , div []
+                [ span [ css [ fontWeight bold ] ] [ text "Date Created: " ]
+                , span [] [ text details.dateCreated ]
+                ]
+            , div []
+                [ span [ css [ fontWeight bold ] ] [ text "Build Status: " ]
+                , span [] [ text details.buildStatus ]
+                ]
+            , div []
+                [ span [ css [ fontWeight bold ] ] [ text "SVN Location: " ]
+                , span [] [ text details.svnLocation ]
+                ]
+            ]
         , div []
-            [ label []
+            [ span [ css [ fontWeight bold, marginRight (px 10) ] ] [ text "Visibility" ]
+            , label []
                 [ input
                     [ type_ "checkbox"
                     , Html.Styled.Attributes.checked <| details.visible
@@ -129,10 +152,23 @@ viewDetails details model =
                 , text <| " editable"
                 ]
             ]
+        , br [] []
+        , div [ class "pure-u-1 pure-u-md-1-3" ]
+            [ label [ css [ fontWeight bold, marginRight (px 10) ] ] [ text "Deployment Status" ]
+            , select [ id "state", class "pure-input-1-2", on "change" (Decode.map (ChangeDeploymentStatus details) targetValueStatus) ]
+                [ option [ value "Nothing", selected (isSelected "Nothing") ] [ text "" ]
+                , option [ value "Development", selected (isSelected "Development") ] [ text "Development" ]
+                , option [ value "Requesting QA", selected (isSelected "Requesting QA") ] [ text "Requesting QA" ]
+                , option [ value "QA", selected (isSelected "QA") ] [ text "QA" ]
+                , option [ value "Requesting Production", selected (isSelected "Requesting Production") ] [ text "Requesting Production" ]
+                , option [ value "Production", selected (isSelected "Production") ] [ text "Production" ]
+                ]
+            ]
+        , br [] []
         , div [ class "pure-u-1 pure-u-md-1-3", css [ marginTop (px 10) ] ]
             [ form [ class "pure-form", onSubmit (ClonePackage details model.clonePackageId) ]
                 [ fieldset []
-                    [ legend [] [ text "Clone Package" ]
+                    [ legend [ css [ fontWeight bold ] ] [ text "Clone Package" ]
                     , input
                         [ css [ marginRight (px 10), width (px 300) ], placeholder "Enter new package id for clone", onInput ChangeClonePackageId ]
                         [ text model.clonePackageId ]
@@ -161,18 +197,6 @@ viewDetails details model =
 
                 CloneFailed err ->
                     div [ css [ color (rgb 192 57 43) ] ] [ text ("Clone failed: " ++ httpErrorMessage err) ]
-            ]
-        , br [] []
-        , div [ class "pure-u-1 pure-u-md-1-3" ]
-            [ label [ css [ marginRight (px 10) ] ] [ text "Deployment Status" ]
-            , select [ id "state", class "pure-input-1-2", on "change" (Decode.map (ChangeDeploymentStatus details) targetValueStatus) ]
-                [ option [ value "Nothing", selected (isSelected "Nothing") ] [ text "" ]
-                , option [ value "Development", selected (isSelected "Development") ] [ text "Development" ]
-                , option [ value "Requesting QA", selected (isSelected "Requesting QA") ] [ text "Requesting QA" ]
-                , option [ value "QA", selected (isSelected "QA") ] [ text "QA" ]
-                , option [ value "Requesting Production", selected (isSelected "Requesting Production") ] [ text "Requesting Production" ]
-                , option [ value "Production", selected (isSelected "Production") ] [ text "Production" ]
-                ]
             ]
         , viewResources details.resources
         ]
