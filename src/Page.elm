@@ -25,7 +25,6 @@ type Page
     | Home
     | Packages
     | PackageDetails
-    | TestBed
     | UserSessions
     | Users
     | UserDetails
@@ -109,7 +108,6 @@ viewMenu page context =
                 , linkTo Route.Packages [ text "Packages" ]
                 , linkTo Route.UserSessions [ text "Sessions" ]
                 , linkTo Route.Users [ text "Users " ]
-                , linkTo Route.TestBed [ text "TestBed " ]
                 ]
             ]
 
@@ -145,9 +143,6 @@ isActive page route =
             True
 
         ( UserSessions, Route.UserSessions ) ->
-            True
-
-        ( TestBed, Route.TestBed ) ->
             True
 
         ( Users, Route.Users ) ->

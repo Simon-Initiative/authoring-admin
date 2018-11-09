@@ -22,14 +22,12 @@ type Route
     | UserSessions
     | Users
     | UserDetails Guid
-    | TestBed
 
 
 parser : Parser (Route -> a) a
 parser =
     oneOf
         [ Parser.map Home Parser.top
-        , Parser.map TestBed (s "testbed")
         , Parser.map Packages (s "packages")
         , Parser.map PackageDetails (s "packages" </> Data.Guid.urlParser)
         , Parser.map UserSessions (s "sessions")
@@ -75,9 +73,6 @@ routeToString page =
 
                 Root ->
                     []
-
-                TestBed ->
-                    [ "testbed" ]
 
                 Packages ->
                     [ "packages" ]

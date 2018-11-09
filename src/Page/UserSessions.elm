@@ -263,7 +263,7 @@ update msg model =
         RetrievedClientSessions (Ok sessionClients) ->
             let
                 maybeAccountClient =
-                    List.Extra.find (\c -> c.clientId == "account") sessionClients
+                    List.Extra.find (\c -> c.clientId == "content_client") sessionClients
             in
             ( model
             , case maybeAccountClient of

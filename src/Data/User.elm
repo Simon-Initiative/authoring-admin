@@ -55,7 +55,7 @@ retrieveUsers token baseUrl =
             ]
 
         url =
-            baseUrl ++ "/auth/admin/realms/oli_security/users"
+            baseUrl ++ "/auth/admin/realms/oli_security/users?max=2147483647"
     in
     Http.request
         { method = "GET"
