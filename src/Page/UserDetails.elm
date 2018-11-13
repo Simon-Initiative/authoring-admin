@@ -58,7 +58,7 @@ viewDetails : User -> Html Msg
 viewDetails user =
     div []
         [ h3 [] [ text <| user.firstName ++ " " ++ user.lastName ]
-        , h4 []
+        , div []
             [ text <| user.email ++ " "
 
             -- , button [ onClick (ResetPasswordRequest user.id) ] [ text <| "Reset Password" ]

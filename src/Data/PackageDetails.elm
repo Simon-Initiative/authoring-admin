@@ -7,7 +7,7 @@ import Data.ResourceId exposing (ResourceId, decoder, toString)
 import Dict
 import Html exposing (..)
 import Http
-import Json.Decode exposing (Decoder, bool, fail, float, int, list, nullable, string, succeed)
+import Json.Decode exposing (Decoder, bool, fail, float, int, list, nullable, string, succeed, oneOf, null)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import Url.Builder as Url
@@ -58,7 +58,6 @@ retrievePackageDetails courseId token baseUrl =
         , withCredentials = False
         }
 
-
 detailsDecoder : Decoder PackageDetails
 detailsDecoder =
     succeed PackageDetails
@@ -71,7 +70,7 @@ detailsDecoder =
         |> required "resources" resourcesDecoder
         |> required "buildStatus" string
         |> required "dateCreated" string
-        |> required "svnLocation" string
+        |> optional "svnLocation" string ""
         |> required "packageFamily" string
         |> required "version" string
 

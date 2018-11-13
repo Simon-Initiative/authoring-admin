@@ -230,7 +230,11 @@ httpErrorMessage : Http.Error -> String
 httpErrorMessage err =
     case err of
         Http.BadStatus response ->
-            response.status.message
+            case response.status.code of
+                404 ->
+                    "Package Not Found"
+                _ ->
+                    response.status.message
 
         Http.BadPayload msg response ->
             msg
@@ -258,7 +262,7 @@ view model =
                 Failed err ->
                     case err of
                         Http.BadStatus response ->
-                            text "bad status"
+                            text (httpErrorMessage err)
 
                         Http.BadPayload msg response ->
                             text msg
