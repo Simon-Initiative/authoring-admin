@@ -7,7 +7,6 @@ import Data.Guid
 import Data.Profile exposing (Profile)
 import Data.User exposing (User, userDecoder)
 import Data.Username exposing (Username)
-import Debug exposing (log)
 import Html
 import Json.Decode as Decode exposing (Value, decodeValue)
 import Page exposing (Page)

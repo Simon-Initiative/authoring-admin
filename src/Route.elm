@@ -82,6 +82,7 @@ routeToString page =
 
                 UserSessions ->
                     [ "sessions" ]
+
                 Users ->
                     [ "users" ]
 

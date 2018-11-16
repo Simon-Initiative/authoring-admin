@@ -37,7 +37,7 @@ retrieveUserSessions token clientId baseUrl =
             ]
 
         url =
-            baseUrl ++ "/auth/admin/realms/oli_security/clients/" ++ clientId ++ "/user-sessions"
+            baseUrl ++ "/auth/admin/realms/oli_security/clients/" ++ clientId ++ "/user-sessions?max=2147483647"
     in
     Http.request
         { method = "GET"

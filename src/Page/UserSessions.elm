@@ -194,9 +194,15 @@ view model =
     , content =
         div [ class "user-sessions-page" ]
             [ globalThemeStyles model.context.theme
-            , div
-                [ css toolbarStyle ]
-                [ div [ css [ flex (int 1) ] ] []
+            , div [ css toolbarStyle ]
+                [ div []
+                    [ button
+                        [ class "button-error pure-button"
+                        , onClick LogoutAllUsers
+                        ]
+                        [ text "Logout All" ]
+                    ]
+                , div [ css [ flex (int 1) ] ] []
                 , div []
                     [ button
                         [ class "button-secondary pure-button"
@@ -208,11 +214,6 @@ view model =
                             []
                         , text "Refresh"
                         ]
-                    , button
-                        [ class "button-error pure-button"
-                        , onClick LogoutAllUsers
-                        ]
-                        [ text "Logout All" ]
                     ]
                 ]
             , div []
@@ -263,7 +264,7 @@ update msg model =
         RetrievedClientSessions (Ok sessionClients) ->
             let
                 maybeAccountClient =
-                    List.Extra.find (\c -> c.clientId == "account") sessionClients
+                    List.Extra.find (\c -> c.clientId == "content_client") sessionClients
             in
             ( model
             , case maybeAccountClient of
