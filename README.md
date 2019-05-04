@@ -1,5 +1,7 @@
 # authoring-admin
 
+[![Open Learning Initiative](https://oli.cmu.edu/wp-content/uploads/2018/10/oli-logo-78px-high-1.svg)](http://oli.cmu.edu/)
+
 Admin application for the course editor written in [Elm](https://elm-lang.org/).
 
 > ### "Project Achilles"
