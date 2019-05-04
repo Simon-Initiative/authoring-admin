@@ -1,6 +1,6 @@
 # authoring-admin
 
-Admin application for the course editor written in Elm.
+Admin application for the course editor written in [Elm](https://elm-lang.org/).
 
 ### "Project Achilles"
 
