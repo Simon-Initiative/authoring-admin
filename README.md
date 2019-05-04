@@ -2,15 +2,11 @@
 
 Admin application for the course editor written in [Elm](https://elm-lang.org/).
 
-### "Project Achilles"
-
-During a battle in the Trojan War in Homer's the  *Illiad*, the river 
-god Scamander, furious over the sight of so many corpses in his waters, overflows
-his banks in an attempt to drown the responsible party, the
-great warrior Achilles.  As Achilles is being swept away under the 
-wall of water, he reaches out for safety, grabbing onto the branch of a great elm tree.
-
-We think this is an interesting metaphor for front-end development in JavaScript.
+> ### "Project Achilles"
+>
+> During a battle in the Trojan War in Homer's the  *Illiad*, the river god Scamander, furious over the sight of so many corpses in his waters, overflows his banks in an attempt to drown the responsible party, the great warrior Achilles.  As Achilles is being swept away under the wall of water, he reaches out for safety, grabbing onto the branch of a great elm tree.
+>
+>We think this is an interesting metaphor for front-end development in JavaScript.
 
 ## Related repositories
 * [authoring-dev](https://github.com/Simon-Initiative/authoring-dev) - Docker development environment for the course authoring platform
