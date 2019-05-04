@@ -1,8 +1,8 @@
-# Project Achilles
+# authoring-admin
 
-A course editor admin application written in Elm.
+Admin application for the course editor written in Elm.
 
-## Why "Project Achilles"?
+### "Project Achilles"
 
 During a battle in the Trojan War in Homer's the  *Illiad*, the river 
 god Scamander, furious over the sight of so many corpses in his waters, overflows
@@ -10,7 +10,13 @@ his banks in an attempt to drown the responsible party, the
 great warrior Achilles.  As Achilles is being swept away under the 
 wall of water, he reaches out for safety, grabbing onto the branch of a great elm tree.
 
-I think this is an interesting metaphor for front-end development in JavaScript.
+We think this is an interesting metaphor for front-end development in JavaScript.
+
+## Related repositories
+* [authoring-dev](https://github.com/Simon-Initiative/authoring-dev) - Docker development environment for the course authoring platform
+* [authoring-client](https://github.com/Simon-Initiative/authoring-client) - Typescript/React/Redux editing client
+* [authoring-server](https://github.com/Simon-Initiative/authoring-server) - Java server, REST API, bridge to OLI
+* [authoring-eval](https://github.com/Simon-Initiative/authoring-eval) - Typescript/Node dynamic question evaluation engine
 
 ## Getting started
 
@@ -37,3 +43,6 @@ does kinda still work.  I think the Atom and IntelliJ plugins have been updated 
 8. Run the compiler and server.
 > npm run serve
 9. Open a browser and visit the application at `http://dev.local:7000`.
+
+## License
+This software is licensed under the [MIT License](./LICENSE) © 2019 Carnegie Mellon University
