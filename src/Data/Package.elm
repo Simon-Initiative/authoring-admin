@@ -43,7 +43,7 @@ retrievePackages token baseUrl =
             ]
 
         url =
-            baseUrl ++ "/content-service/api/v1/packages/editable"
+            baseUrl ++ "/content-service/api/v1/packages"
     in
     Http.request
         { method = "GET"
