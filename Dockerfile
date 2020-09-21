@@ -11,7 +11,7 @@ RUN wget "https://github.com/elm/compiler/releases/download/0.19.0/binaries-for-
 
 USER node
 
-RUN mkdir ~/.npm-global && npm install -g elm@latest-0.19.1
+RUN mkdir ~/.npm-global && npm install -g elm@latest-0.19.0
 ENV PATH="/home/node/.npm-global/bin:${PATH}"
 
 RUN npm install -g uglify-js
