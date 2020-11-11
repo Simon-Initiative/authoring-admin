@@ -12,6 +12,7 @@ import Array
 type BuildStatus
     = Ready
     | Building
+    | Failed
     | Processing
 
 
@@ -118,6 +119,9 @@ buildStatusDecoder =
                 case s of
                     "READY" ->
                         succeed Ready
+
+                    "FAILED" ->
+                        succeed Failed
 
                     "BUILDING" ->
                         succeed Building
