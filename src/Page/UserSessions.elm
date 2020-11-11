@@ -167,7 +167,7 @@ viewSessions userSessions =
                 )
                 userSessions
     in
-    table [ class "pure-table" ]
+    Html.Styled.table [ class "pure-table" ]
         [ thead []
             [ tr []
                 [ th [] [ text "Username" ]

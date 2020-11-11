@@ -2,7 +2,7 @@ module Page.Packages exposing (Model, Msg, init, subscriptions, toContext, updat
 
 import AppContext exposing (AppContext)
 import Browser.Navigation as Nav
-import Data.Package as Package exposing (Package, retrievePackages)
+import Data.Package as Package exposing (Package, retrievePackages, sortPackages)
 import Data.ResourceId exposing (ResourceId)
 import Data.Username as Username exposing (Username)
 import Html.Styled exposing (Html, a, button, div, span, form, fieldset, h1, input, li, text, b, textarea, toUnstyled, ul)
@@ -165,7 +165,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RetrievedPackages (Ok packages) ->
-            ( { model | status = Loaded packages }
+            ( { model | status = Loaded (Package.sortPackages packages) }
             , Cmd.none
             )
 

@@ -179,7 +179,7 @@ viewDetails details model =
                     , button
                         [ class "pure-button pure-button-primary"
                         , css [ marginRight (px 10) ]
-                        , disabled (model.clonePackageId == "" && model.cloneStatus /= ClonePending)
+                        , Html.Styled.Attributes.disabled (model.clonePackageId == "" && model.cloneStatus /= ClonePending)
                         ]
                         [ text "Clone" ]
                     ]
