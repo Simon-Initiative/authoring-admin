@@ -44,12 +44,12 @@ view page { title, content } context =
     let
         body =
             toUnstyled
-                (div [ class "layout" ]
+                (Html.Styled.div [ class "layout" ]
                     [ viewMenuToggle
                     , viewMenu page context
-                    , div [ class "main" ]
-                        [ div [ class "header" ] [ h3 [] [ text title ] ]
-                        , div [ class "content" ] [ content ]
+                    , Html.Styled.div [ class "main" ]
+                        [ Html.Styled.div [ class "header" ] [ Html.Styled.h3 [] [ Html.Styled.text title ] ]
+                        , Html.Styled.div [ class "content" ] [ content ]
                         ]
                     ]
                 )
@@ -61,7 +61,7 @@ view page { title, content } context =
 
 viewMenuToggle : Html msg
 viewMenuToggle =
-    a [ href "#menu", class "menuLink", class "menu-link" ] [ span [] [] ]
+    Html.Styled.a [ href "#menu", class "menuLink", class "menu-link" ] [ Html.Styled.span [] [] ]
 
 
 menuStyle themeType theme =
@@ -100,14 +100,14 @@ viewMenu page context =
         linkTo =
             navbarLink page context.theme
     in
-    div [ class "menu ", tcss context.theme menuStyle ]
-        [ div [ class "pure-menu", tcss context.theme pureMenuStyle ]
-            [ a [ class "pure-menu-heading", href "#" ] [ text "Admin " ]
-            , ul [ class "pure-menu-list " ]
-                [ linkTo Route.Home [ text "Home" ]
-                , linkTo Route.Packages [ text "Packages" ]
-                , linkTo Route.UserSessions [ text "Sessions" ]
-                , linkTo Route.Users [ text "Users " ]
+    Html.Styled.div [ class "menu ", tcss context.theme menuStyle ]
+        [ Html.Styled.div [ class "pure-menu", tcss context.theme pureMenuStyle ]
+            [ Html.Styled.a [ class "pure-menu-heading", href "#" ] [ Html.Styled.text "Admin " ]
+            , Html.Styled.ul [ class "pure-menu-list " ]
+                [ linkTo Route.Home [ Html.Styled.text "Home" ]
+                , linkTo Route.Packages [ Html.Styled.text "Packages" ]
+                , linkTo Route.UserSessions [ Html.Styled.text "Sessions" ]
+                , linkTo Route.Users [ Html.Styled.text "Users " ]
                 ]
             ]
 
@@ -118,8 +118,8 @@ viewMenu page context =
 
 navbarLink : Page -> Theme.Theme -> Route -> List (Html msg) -> Html msg
 navbarLink page theme route linkContent =
-    li [ classList [ ( "pure-menu-item", True ), ( "pure-menu-selected", isActive page route ) ] ]
-        [ a [ class "pure-menu-link", Route.href route ] linkContent ]
+    Html.Styled.li [ classList [ ( "pure-menu-item", True ), ( "pure-menu-selected", isActive page route ) ] ]
+        [ Html.Styled.a [ class "pure-menu-link", Route.href route ] linkContent ]
 
 
 
